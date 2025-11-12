@@ -123,17 +123,41 @@
 	}
 }
 
-/* Book-themed paper texture - sleeker version */
+/* Book-themed paper texture - more prominent */
 .book-page {
 	background:
-		linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px),
-		linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px),
-		linear-gradient(180deg, rgba(0, 0, 0, 0.01) 0%, transparent 50%);
+		/* Grid lines - more visible */
+		linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+		linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+		/* Subtle vertical lines for ruled paper effect */
+		linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0px, transparent 1px),
+		/* Gradient overlay for depth */
+		linear-gradient(180deg, rgba(0, 0, 0, 0.015) 0%, transparent 30%, rgba(0, 0, 0, 0.01) 100%),
+		/* Base paper color */
+		#f8f6f2;
 	background-size:
-		24px 24px,
-		24px 24px,
+		20px 20px,
+		20px 20px,
+		100% 100%,
+		100% 100%,
 		100% 100%;
-	background-color: #fafaf9;
+	background-color: #f8f6f2;
+	position: relative;
+}
+
+/* Add subtle paper texture overlay */
+.book-page::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image:
+		radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.03) 1px, transparent 0);
+	background-size: 8px 8px;
+	pointer-events: none;
+	opacity: 0.6;
 }
 
 .book-shadow {
