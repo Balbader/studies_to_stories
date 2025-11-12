@@ -38,6 +38,7 @@ export default function Home() {
 	const benefitsItemsRef = useRef<HTMLDivElement>(null);
 	const finalCtaRef = useRef<HTMLDivElement>(null);
 	const bookCoverRef = useRef<HTMLDivElement>(null);
+	const storiesTextRef = useRef<HTMLSpanElement>(null);
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
@@ -106,6 +107,100 @@ export default function Home() {
 					repeat: -1,
 					yoyo: true,
 					ease: 'sine.inOut',
+				});
+			}
+
+			// Handwriting animation for "Stories"
+			if (storiesTextRef.current) {
+				const text = storiesTextRef.current;
+				const originalText = text.textContent || '';
+				const letters = originalText.split('');
+
+				text.textContent = ''; // Clear original text
+
+				// Create span for each letter with proper styling
+				const letterSpans: HTMLElement[] = [];
+				letters.forEach((letter) => {
+					const span = document.createElement('span');
+					span.textContent = letter === ' ' ? '\u00A0' : letter;
+					span.style.display = 'inline-block';
+					span.style.opacity = '0';
+					span.style.clipPath = 'inset(0 100% 0 0)';
+					span.style.willChange =
+						'clip-path, opacity, transform, filter';
+					span.style.transform = 'scale(0.8) rotate(-2deg)';
+					span.style.filter = 'blur(2px)';
+					text.appendChild(span);
+					letterSpans.push(span);
+				});
+
+				// Use requestAnimationFrame to ensure DOM is ready
+				requestAnimationFrame(() => {
+					// Animate each letter being written with handwriting-like effect
+					const writingTimeline = gsap.timeline({ delay: 2.5 });
+
+					letterSpans.forEach((span, index) => {
+						// Vary timing slightly for more natural handwriting feel
+						const baseDelay = index * 0.18;
+						const randomVariation = (Math.random() - 0.5) * 0.05;
+						const delay = baseDelay + randomVariation;
+
+						// Vary duration slightly for each letter
+						const baseDuration = 0.35;
+						const durationVariation = (Math.random() - 0.5) * 0.1;
+						const duration = baseDuration + durationVariation;
+
+						// Animate the letter being drawn (reveal from left to right like ink)
+						writingTimeline.to(
+							span,
+							{
+								clipPath: 'inset(0 0% 0 0)',
+								opacity: 1,
+								duration: duration,
+								ease: 'power1.inOut',
+							},
+							delay,
+						);
+
+						// Add ink appearance effect - start blurred and small, then sharpen
+						writingTimeline.fromTo(
+							span,
+							{
+								filter: 'blur(3px)',
+								scale: 0.85,
+								rotation: -3 + Math.random() * 2,
+							},
+							{
+								filter: 'blur(0px)',
+								scale: 1,
+								rotation: -1 + Math.random() * 0.5,
+								duration: duration * 0.6,
+								ease: 'power2.out',
+							},
+							delay,
+						);
+
+						// Add slight lift effect after writing (pen lifting off paper)
+						writingTimeline.to(
+							span,
+							{
+								y: -1,
+								duration: 0.1,
+								ease: 'power2.out',
+							},
+							delay + duration - 0.1,
+						);
+
+						writingTimeline.to(
+							span,
+							{
+								y: 0,
+								duration: 0.15,
+								ease: 'power2.in',
+							},
+							delay + duration,
+						);
+					});
 				});
 			}
 
@@ -344,7 +439,14 @@ export default function Home() {
 										Studies
 									</span>{' '}
 									Into{' '}
-									<span className="text-stone-700 italic">
+									<span
+										ref={storiesTextRef}
+										className="text-stone-700 handwritten-text relative inline-block"
+										style={{
+											fontFamily:
+												'var(--font-handwritten)',
+										}}
+									>
 										Stories
 									</span>
 								</h1>

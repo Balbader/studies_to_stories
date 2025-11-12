@@ -4,6 +4,7 @@ import {
 	Geist_Mono,
 	Playfair_Display,
 	Crimson_Pro,
+	Caveat,
 } from 'next/font/google';
 import './globals.css';
 
@@ -29,6 +30,12 @@ const crimsonPro = Crimson_Pro({
 	weight: ['400', '500', '600'],
 });
 
+const caveat = Caveat({
+	variable: '--font-handwritten',
+	subsets: ['latin'],
+	weight: ['400', '500', '600', '700'],
+});
+
 export const metadata: Metadata = {
 	title: 'Studies to Stories - Transform Your Learning Into Novels',
 	description:
@@ -43,7 +50,7 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${crimsonPro.variable} antialiased`}
+				className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${crimsonPro.variable} ${caveat.variable} antialiased`}
 			>
 				{children}
 			</body>
