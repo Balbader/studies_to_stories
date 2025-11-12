@@ -21,7 +21,6 @@ import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Noto from '@/components/Noto';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -305,10 +304,6 @@ export default function Home() {
 				ref={heroRef}
 				className="relative overflow-hidden border-b border-stone-200/40 book-page"
 			>
-				{/* Noto - Floating Study Buddy (Desktop) */}
-				<div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none hidden md:block">
-					<Noto className="w-32 h-32 lg:w-48 lg:h-48 xl:w-64 xl:h-64" />
-				</div>
 				{/* Subtle book binding */}
 				<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
 				<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
@@ -353,10 +348,6 @@ export default function Home() {
 										Stories
 									</span>
 								</h1>
-								{/* Noto - Mobile version */}
-								<div className="flex justify-center mb-6 md:hidden">
-									<Noto className="w-32 h-32" />
-								</div>
 								<p
 									ref={subtitleRef}
 									className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-stone-600 sm:text-xl"

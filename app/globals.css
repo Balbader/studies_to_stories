@@ -130,11 +130,15 @@
 		linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
 		linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
 		/* Subtle vertical lines for ruled paper effect */
-		linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0px, transparent 1px),
+			linear-gradient(90deg, rgba(0, 0, 0, 0.02) 0px, transparent 1px),
 		/* Gradient overlay for depth */
-		linear-gradient(180deg, rgba(0, 0, 0, 0.015) 0%, transparent 30%, rgba(0, 0, 0, 0.01) 100%),
-		/* Base paper color */
-		#f8f6f2;
+			linear-gradient(
+				180deg,
+				rgba(0, 0, 0, 0.015) 0%,
+				transparent 30%,
+				rgba(0, 0, 0, 0.01) 100%
+			),
+		/* Base paper color */ #f8f6f2;
 	background-size:
 		20px 20px,
 		20px 20px,
@@ -153,8 +157,11 @@
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-image:
-		radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.03) 1px, transparent 0);
+	background-image: radial-gradient(
+		circle at 1px 1px,
+		rgba(0, 0, 0, 0.03) 1px,
+		transparent 0
+	);
 	background-size: 8px 8px;
 	pointer-events: none;
 	opacity: 0.6;
@@ -170,4 +177,49 @@
 .book-border {
 	border-left: 1px solid rgba(0, 0, 0, 0.06);
 	border-right: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Noto 3D Character Styles */
+.noto-container {
+	perspective: 1000px;
+	perspective-origin: center center;
+}
+
+.noto-body {
+	transform-style: preserve-3d;
+	backface-visibility: hidden;
+	will-change: transform;
+}
+
+/* LED Eye Glow Effect */
+@keyframes eyeGlow {
+	0%,
+	100% {
+		filter: drop-shadow(0 0 8px currentColor);
+	}
+	50% {
+		filter: drop-shadow(0 0 16px currentColor);
+	}
+}
+
+.noto-eye {
+	animation: eyeGlow 3s ease-in-out infinite;
+}
+
+/* Wing Flutter Animation */
+@keyframes wingFlutter {
+	0%,
+	100% {
+		transform: rotate(0deg) translateY(0);
+	}
+	25% {
+		transform: rotate(-10deg) translateY(-3px);
+	}
+	75% {
+		transform: rotate(10deg) translateY(-3px);
+	}
+}
+
+.noto-wing {
+	animation: wingFlutter 2s ease-in-out infinite;
 }
