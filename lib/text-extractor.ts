@@ -4,6 +4,11 @@ import './pdf-polyfills';
 import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
 import path from 'path';
+import {
+	extractImagesFromDocument,
+	type ExtractedImage,
+} from './image-extractor';
+import { addImageDescriptionsToText } from './image-descriptor';
 
 // Configure PDF.js worker for Node.js environment
 if (typeof window === 'undefined') {
@@ -24,6 +29,7 @@ export interface ExtractedTextData {
 	text: string;
 	extractedAt: string;
 	metadata?: Record<string, any>;
+	images?: ExtractedImage[];
 }
 
 /**
@@ -35,6 +41,9 @@ async function extractTextFromPDF(file: File): Promise<ExtractedTextData> {
 	const pdfParser = new PDFParse({ data: buffer });
 	const pdfData = await pdfParser.getText();
 
+	// Extract images
+	const images = await extractImagesFromDocument(file).catch(() => []);
+
 	return {
 		fileName: file.name,
 		fileType: 'pdf',
@@ -43,6 +52,7 @@ async function extractTextFromPDF(file: File): Promise<ExtractedTextData> {
 		metadata: {
 			pageCount: pdfData.total,
 		},
+		images: images.length > 0 ? images : undefined,
 	};
 }
 
@@ -54,6 +64,9 @@ async function extractTextFromDOCX(file: File): Promise<ExtractedTextData> {
 	const buffer = Buffer.from(arrayBuffer);
 	const result = await mammoth.extractRawText({ buffer });
 
+	// Extract images
+	const images = await extractImagesFromDocument(file).catch(() => []);
+
 	return {
 		fileName: file.name,
 		fileType: 'docx',
@@ -63,6 +76,7 @@ async function extractTextFromDOCX(file: File): Promise<ExtractedTextData> {
 			result.messages.length > 0
 				? { warnings: result.messages }
 				: undefined,
+		images: images.length > 0 ? images : undefined,
 	};
 }
 
@@ -132,15 +146,42 @@ export interface CombinedTextData {
  * @param extractedData - Array of extracted text data from multiple documents
  * @returns Combined text data in JSON format
  */
-export function combineExtractedText(
+export async function combineExtractedText(
 	extractedData: ExtractedTextData[],
-): CombinedTextData {
-	const combinedText = extractedData
+): Promise<CombinedTextData> {
+	// Combine text first
+	let combinedText = extractedData
 		.map((data, index) => {
 			const separator = index > 0 ? '\n\n---\n\n' : '';
 			return `${separator}[Document: ${data.fileName}]\n\n${data.text}`;
 		})
 		.join('\n\n');
+
+	// Process images and add descriptions
+	const allImages: Array<{
+		imageData: Buffer;
+		mimeType: string;
+		position?: string;
+	}> = [];
+
+	for (const data of extractedData) {
+		if (data.images && data.images.length > 0) {
+			allImages.push(...data.images);
+		}
+	}
+
+	// Add image descriptions to the combined text
+	if (allImages.length > 0) {
+		try {
+			combinedText = await addImageDescriptionsToText(
+				combinedText,
+				allImages,
+			);
+		} catch (error) {
+			console.error('Error adding image descriptions:', error);
+			// Continue without image descriptions if there's an error
+		}
+	}
 
 	const totalCharacters = combinedText.length;
 

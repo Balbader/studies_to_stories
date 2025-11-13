@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
 		// Combine all extracted text into a single JSON object for the lesson agent
 		const combinedData: CombinedTextData =
-			combineExtractedText(extractedData);
+			await combineExtractedText(extractedData);
 
 		// Return both individual and combined data in JSON format
 		return NextResponse.json({

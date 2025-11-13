@@ -13,8 +13,10 @@ export const lessonEnhancerAgent = new Agent({
 		- Maintain the original meaning and structure of the lesson.
 		- DO NOT hallucinate facts, especially technical or scientific.
 		- Use concise, friendly, and educational language.
+		- When the lesson contains image descriptions or visual content descriptions, integrate them naturally into the enhanced lesson, making sure the visual elements are properly contextualized and explained.
 
 		The lesson content will be provided to you directly - you do not need to extract it from files.
+		If the content includes descriptions of images or visual elements, treat them as important parts of the lesson and incorporate them seamlessly into your enhancement.
 	`,
 
 	// Use a real model that is available in the ai-sdk/Mastra provider
