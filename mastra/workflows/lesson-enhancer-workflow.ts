@@ -25,23 +25,22 @@ const enhanceLessonStep = createStep({
 	execute: async ({ inputData }) => {
 		const { lessonTitle, lessonContent, level, language } = inputData;
 
-		// Build a comprehensive prompt for the agent
-		let prompt = `Please enhance the following lesson content:\n\n`;
+		// Build an optimized, concise prompt for faster processing
+		let prompt = '';
 
 		if (lessonTitle) {
-			prompt += `**Lesson Title:** ${lessonTitle}\n\n`;
+			prompt += `Title: ${lessonTitle}\n`;
 		}
 
 		if (level) {
-			prompt += `**Target Level:** ${level}\n\n`;
+			prompt += `Level: ${level}\n`;
 		}
 
 		if (language) {
-			prompt += `**Language:** ${language}\n\n`;
+			prompt += `Language: ${language}\n`;
 		}
 
-		prompt += `**Lesson Content:**\n${lessonContent}\n\n`;
-		prompt += `Please make this lesson clearer, more engaging, and more practical. Add real-world examples, metaphors, analogies, and short stories where appropriate. Include optional activities (mini-exercises, guided questions, or practical tasks). Maintain the original meaning and structure.`;
+		prompt += `\nEnhance this lesson:\n${lessonContent}`;
 
 		// Call the agent with the formatted prompt
 		const result = await lessonEnhancerAgent.generate(prompt);
