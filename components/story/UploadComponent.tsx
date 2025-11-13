@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, DragEvent, ChangeEvent } from 'react';
+import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import {
 	Card,
@@ -78,12 +78,25 @@ export default function UploadComponent({
 
 		if (validFiles.length > 0) {
 			setFiles((prev) => {
-				const newFiles = [...prev, ...validFiles];
-				onFileSelect?.(newFiles);
-				return newFiles;
+				return [...prev, ...validFiles];
 			});
 		}
 	};
+
+	// Call onFileSelect after files state has been updated
+	// Use a ref to track if this is the initial mount
+	const isInitialMount = useRef(true);
+
+	useEffect(() => {
+		// Skip on initial mount
+		if (isInitialMount.current) {
+			isInitialMount.current = false;
+			return;
+		}
+
+		// Only call onFileSelect when files change (not on initial mount)
+		onFileSelect?.(files);
+	}, [files, onFileSelect]);
 
 	const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
 		const selectedFiles = Array.from(e.target.files || []);
@@ -121,9 +134,7 @@ export default function UploadComponent({
 
 	const handleRemove = (indexToRemove: number) => {
 		setFiles((prev) => {
-			const newFiles = prev.filter((_, index) => index !== indexToRemove);
-			onFileSelect?.(newFiles);
-			return newFiles;
+			return prev.filter((_, index) => index !== indexToRemove);
 		});
 		setError(null);
 	};
@@ -134,7 +145,6 @@ export default function UploadComponent({
 		if (fileInputRef.current) {
 			fileInputRef.current.value = '';
 		}
-		onFileSelect?.([]);
 	};
 
 	const formatFileSize = (bytes: number): string => {

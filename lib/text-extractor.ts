@@ -1,5 +1,4 @@
-// @ts-ignore - pdf-parse doesn't have proper TypeScript exports
-import pdfParse from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
 
 export interface ExtractedTextData {
@@ -16,7 +15,8 @@ export interface ExtractedTextData {
 async function extractTextFromPDF(file: File): Promise<ExtractedTextData> {
 	const arrayBuffer = await file.arrayBuffer();
 	const buffer = Buffer.from(arrayBuffer);
-	const pdfData = await pdfParse(buffer);
+	const pdfParser = new PDFParse({ data: buffer });
+	const pdfData = await pdfParser.getText();
 
 	return {
 		fileName: file.name,
@@ -24,8 +24,7 @@ async function extractTextFromPDF(file: File): Promise<ExtractedTextData> {
 		text: pdfData.text,
 		extractedAt: new Date().toISOString(),
 		metadata: {
-			pageCount: pdfData.numpages,
-			info: pdfData.info,
+			pageCount: pdfData.total,
 		},
 	};
 }

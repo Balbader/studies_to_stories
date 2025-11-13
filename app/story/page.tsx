@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import UploadComponent from '@/components/story/UploadComponent';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -13,12 +13,12 @@ export default function Story() {
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
 
-	const handleFileSelect = (selectedFiles: File[]) => {
+	const handleFileSelect = useCallback((selectedFiles: File[]) => {
 		setFiles(selectedFiles);
 		setError(null);
 		setSuccess(false);
 		setExtractedData([]);
-	};
+	}, []);
 
 	const handleExtractText = async () => {
 		if (files.length === 0) {
