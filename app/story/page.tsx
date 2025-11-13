@@ -4,11 +4,14 @@ import { useState, useCallback } from 'react';
 import UploadComponent from '@/components/story/UploadComponent';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { ExtractedTextData } from '@/lib/text-extractor';
+import type { ExtractedTextData, CombinedTextData } from '@/lib/text-extractor';
 
 export default function Story() {
 	const [files, setFiles] = useState<File[]>([]);
 	const [extractedData, setExtractedData] = useState<ExtractedTextData[]>([]);
+	const [combinedData, setCombinedData] = useState<CombinedTextData | null>(
+		null,
+	);
 	const [isExtracting, setIsExtracting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
@@ -18,6 +21,7 @@ export default function Story() {
 		setError(null);
 		setSuccess(false);
 		setExtractedData([]);
+		setCombinedData(null);
 	}, []);
 
 	const handleExtractText = async () => {
@@ -48,6 +52,9 @@ export default function Story() {
 
 			const result = await response.json();
 			setExtractedData(result.data);
+			if (result.combined) {
+				setCombinedData(result.combined);
+			}
 			setSuccess(true);
 		} catch (err) {
 			setError(
@@ -126,6 +133,42 @@ export default function Story() {
 										</details>
 									</div>
 								))}
+							</div>
+						</div>
+					)}
+
+					{combinedData && (
+						<div className="space-y-4 mt-6">
+							<h2 className="text-xl font-semibold">
+								Combined Text (For Lesson Agent)
+							</h2>
+							<div className="border rounded-lg p-4 bg-muted/50">
+								<div className="text-sm text-muted-foreground mb-4">
+									Total Documents:{' '}
+									{combinedData.totalDocuments} • Total
+									Characters:{' '}
+									{combinedData.totalCharacters.toLocaleString()}{' '}
+									• Combined:{' '}
+									{new Date(
+										combinedData.combinedAt,
+									).toLocaleString()}
+								</div>
+								<details className="mt-2" open>
+									<summary className="cursor-pointer text-sm font-medium mb-2">
+										View Combined Text
+									</summary>
+									<div className="mt-2 p-3 bg-background border rounded text-sm overflow-auto max-h-96 whitespace-pre-wrap">
+										{combinedData.combinedText}
+									</div>
+								</details>
+								<details className="mt-4">
+									<summary className="cursor-pointer text-sm font-medium">
+										View Combined JSON Object
+									</summary>
+									<pre className="mt-2 p-3 bg-background border rounded text-xs overflow-auto max-h-64">
+										{JSON.stringify(combinedData, null, 2)}
+									</pre>
+								</details>
 							</div>
 						</div>
 					)}

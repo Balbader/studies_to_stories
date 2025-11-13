@@ -1,5 +1,20 @@
 import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
+import path from 'path';
+
+// Configure PDF.js worker for Node.js environment
+if (typeof window === 'undefined') {
+	// Server-side: set worker path to the actual file location
+	const workerPath = path.join(
+		process.cwd(),
+		'node_modules',
+		'pdfjs-dist',
+		'legacy',
+		'build',
+		'pdf.worker.mjs',
+	);
+	PDFParse.setWorker(workerPath);
+}
 
 export interface ExtractedTextData {
 	fileName: string;
@@ -91,4 +106,53 @@ export async function extractTextFromDocuments(
 		files.map((file) => extractTextFromDocument(file)),
 	);
 	return results;
+}
+
+/**
+ * Combined text data structure for lesson agent
+ */
+export interface CombinedTextData {
+	combinedText: string;
+	sources: Array<{
+		fileName: string;
+		fileType: 'pdf' | 'docx' | 'doc';
+		text: string;
+		extractedAt: string;
+		metadata?: Record<string, any>;
+	}>;
+	totalDocuments: number;
+	totalCharacters: number;
+	combinedAt: string;
+}
+
+/**
+ * Combines all extracted text data into a single JSON object for the lesson agent
+ * @param extractedData - Array of extracted text data from multiple documents
+ * @returns Combined text data in JSON format
+ */
+export function combineExtractedText(
+	extractedData: ExtractedTextData[],
+): CombinedTextData {
+	const combinedText = extractedData
+		.map((data, index) => {
+			const separator = index > 0 ? '\n\n---\n\n' : '';
+			return `${separator}[Document: ${data.fileName}]\n\n${data.text}`;
+		})
+		.join('\n\n');
+
+	const totalCharacters = combinedText.length;
+
+	return {
+		combinedText,
+		sources: extractedData.map((data) => ({
+			fileName: data.fileName,
+			fileType: data.fileType,
+			text: data.text,
+			extractedAt: data.extractedAt,
+			metadata: data.metadata,
+		})),
+		totalDocuments: extractedData.length,
+		totalCharacters,
+		combinedAt: new Date().toISOString(),
+	};
 }

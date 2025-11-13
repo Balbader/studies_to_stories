@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
 	extractTextFromDocuments,
+	combineExtractedText,
 	type ExtractedTextData,
+	type CombinedTextData,
 } from '@/lib/text-extractor';
 
 export const runtime = 'nodejs';
@@ -22,10 +24,15 @@ export async function POST(request: NextRequest) {
 		const extractedData: ExtractedTextData[] =
 			await extractTextFromDocuments(files);
 
-		// Return the extracted data in JSON format
+		// Combine all extracted text into a single JSON object for the lesson agent
+		const combinedData: CombinedTextData =
+			combineExtractedText(extractedData);
+
+		// Return both individual and combined data in JSON format
 		return NextResponse.json({
 			success: true,
 			data: extractedData,
+			combined: combinedData,
 			count: extractedData.length,
 		});
 	} catch (error) {
