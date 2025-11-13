@@ -234,8 +234,8 @@ export default function Story() {
 			return;
 		}
 
-		// Check total file size (serverless functions typically have a 4.5MB limit)
-		const MAX_TOTAL_SIZE_MB = 4.5;
+		// Check total file size (serverless functions typically have a 4.5MB limit, but we allow up to 5MB with a buffer)
+		const MAX_TOTAL_SIZE_MB = 5;
 		const totalSizeMB =
 			files.reduce((sum, file) => sum + file.size, 0) / (1024 * 1024);
 
