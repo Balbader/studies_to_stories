@@ -19,10 +19,13 @@ import {
 	CheckCircle2,
 	Loader2,
 	BookOpen,
+	GitCompare,
+	Eye,
 } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type { ExtractedTextData, CombinedTextData } from '@/lib/text-extractor';
+import TextDiffView from '@/components/story/TextDiffView';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -38,12 +41,14 @@ export default function Story() {
 	const [enhancedText, setEnhancedText] = useState<string | null>(null);
 	const [isEnhancing, setIsEnhancing] = useState(false);
 	const [enhanceError, setEnhanceError] = useState<string | null>(null);
+	const [showDiff, setShowDiff] = useState(false);
 
 	// Refs for animations and scrolling
 	const heroRef = useRef<HTMLDivElement>(null);
 	const uploadRef = useRef<HTMLDivElement>(null);
 	const combinedRef = useRef<HTMLDivElement>(null);
 	const enhancedRef = useRef<HTMLDivElement>(null);
+	const viewDiffButtonRef = useRef<HTMLButtonElement>(null);
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
@@ -131,6 +136,66 @@ export default function Story() {
 		}
 	}, [enhancedText]);
 
+	// Continuous animation for View Diff button
+	useEffect(() => {
+		if (!viewDiffButtonRef.current || !enhancedText) return;
+
+		const button = viewDiffButtonRef.current;
+
+		// Only animate when showDiff is false (showing "View Diff")
+		if (!showDiff) {
+			// Create a continuous pulse animation
+			const pulseAnimation = gsap.to(button, {
+				scale: 1.05,
+				duration: 1.2,
+				ease: 'power2.inOut',
+				repeat: -1,
+				yoyo: true,
+			});
+
+			// Add a subtle glow effect
+			const glowAnimation = gsap.to(button, {
+				boxShadow: '0 0 20px rgba(34, 197, 94, 0.4)',
+				duration: 1.5,
+				ease: 'power2.inOut',
+				repeat: -1,
+				yoyo: true,
+			});
+
+			// Animate the icon with a subtle pulse
+			const icon = button.querySelector('svg');
+			let iconAnimation: gsap.core.Tween | null = null;
+			if (icon) {
+				iconAnimation = gsap.to(icon, {
+					scale: 1.15,
+					duration: 1,
+					ease: 'power2.inOut',
+					repeat: -1,
+					yoyo: true,
+				});
+			}
+
+			return () => {
+				pulseAnimation.kill();
+				glowAnimation.kill();
+				if (iconAnimation) {
+					iconAnimation.kill();
+				}
+				gsap.set(button, { scale: 1, boxShadow: 'none' });
+				if (icon) {
+					gsap.set(icon, { rotation: 0 });
+				}
+			};
+		} else {
+			// Reset animations when showDiff is true
+			gsap.set(button, { scale: 1, boxShadow: 'none' });
+			const icon = button.querySelector('svg');
+			if (icon) {
+				gsap.set(icon, { rotation: 0 });
+			}
+		}
+	}, [enhancedText, showDiff]);
+
 	const handleFileSelect = useCallback((selectedFiles: File[]) => {
 		// Update files state
 		setFiles(selectedFiles);
@@ -143,6 +208,7 @@ export default function Story() {
 			setCombinedData(null);
 			setEnhancedText(null);
 			setEnhanceError(null);
+			setShowDiff(false);
 		}
 	}, []);
 
@@ -465,6 +531,29 @@ export default function Story() {
 										Enhanced Lesson
 									</span>
 								</div>
+								<div className="mb-4 flex items-center justify-center gap-4">
+									<Button
+										ref={viewDiffButtonRef}
+										onClick={() => setShowDiff(!showDiff)}
+										variant={
+											showDiff ? 'default' : 'outline'
+										}
+										className="gap-2 relative overflow-visible"
+										size="sm"
+									>
+										{showDiff ? (
+											<>
+												<Eye className="size-4" />
+												View Enhanced
+											</>
+										) : (
+											<>
+												<GitCompare className="size-4" />
+												View Diff
+											</>
+										)}
+									</Button>
+								</div>
 								<p
 									className="text-sm text-stone-500"
 									style={{
@@ -475,125 +564,135 @@ export default function Story() {
 								</p>
 							</div>
 							<div ref={enhancedRef}>
-								{/* Book Page Container */}
-								<div className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden">
-									{/* Book binding decoration */}
-									<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
-									<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+								{showDiff && combinedData ? (
+									<TextDiffView
+										original={combinedData.combinedText}
+										enhanced={enhancedText}
+										title="Before / After Enhancement"
+									/>
+								) : (
+									/* Book Page Container */
+									<div className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden">
+										{/* Book binding decoration */}
+										<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+										<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
 
-									{/* Page number */}
-									<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
-										1
-									</div>
+										{/* Page number */}
+										<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+											1
+										</div>
 
-									{/* Book page content */}
-									<div className="px-8 md:px-12 py-10 md:py-16">
-										{/* Left margin line (like a notebook) */}
-										<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+										{/* Book page content */}
+										<div className="px-8 md:px-12 py-10 md:py-16">
+											{/* Left margin line (like a notebook) */}
+											<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
 
-										{/* Main content area with book-like typography */}
-										<div
-											className="prose prose-stone max-w-none book-content"
-											style={{
-												fontFamily:
-													'var(--font-crimson)',
-											}}
-										>
+											{/* Main content area with book-like typography */}
 											<div
-												className="text-stone-800 leading-relaxed text-base md:text-lg"
+												className="prose prose-stone max-w-none book-content"
 												style={{
 													fontFamily:
 														'var(--font-crimson)',
 												}}
 											>
-												{enhancedText
-													.split('\n')
-													.map((line, index) => {
-														// Remove all markdown characters
-														let cleanLine = line
-															// Remove heading markers
-															.replace(
-																/^#+\s*/g,
-																'',
-															)
-															// Remove bold markers
-															.replace(
-																/\*\*/g,
-																'',
-															)
-															// Remove italic markers (but be careful not to remove asterisks in content)
-															.replace(
-																/\*([^*]+)\*/g,
-																'$1',
-															)
-															// Remove list markers
-															.replace(
-																/^[-*]\s+/g,
-																'',
-															)
-															.replace(
-																/^\d+\.\s+/g,
-																'',
-															)
-															// Remove code blocks
-															.replace(
-																/```[\s\S]*?```/g,
-																'',
-															)
-															.replace(
-																/`([^`]+)`/g,
-																'$1',
-															)
-															// Remove links [text](url)
-															.replace(
-																/\[([^\]]+)\]\([^\)]+\)/g,
-																'$1',
-															)
-															// Remove images ![alt](url)
-															.replace(
-																/!\[([^\]]*)\]\([^\)]+\)/g,
-																'',
-															)
-															// Remove horizontal rules
-															.replace(
-																/^[-*_]{3,}$/g,
-																'',
-															)
-															// Remove blockquotes
-															.replace(
-																/^>\s*/g,
-																'',
-															)
-															.trim();
+												<div
+													className="text-stone-800 leading-relaxed text-base md:text-lg"
+													style={{
+														fontFamily:
+															'var(--font-crimson)',
+													}}
+												>
+													{enhancedText
+														.split('\n')
+														.map((line, index) => {
+															// Remove all markdown characters
+															let cleanLine = line
+																// Remove heading markers
+																.replace(
+																	/^#+\s*/g,
+																	'',
+																)
+																// Remove bold markers
+																.replace(
+																	/\*\*/g,
+																	'',
+																)
+																// Remove italic markers (but be careful not to remove asterisks in content)
+																.replace(
+																	/\*([^*]+)\*/g,
+																	'$1',
+																)
+																// Remove list markers
+																.replace(
+																	/^[-*]\s+/g,
+																	'',
+																)
+																.replace(
+																	/^\d+\.\s+/g,
+																	'',
+																)
+																// Remove code blocks
+																.replace(
+																	/```[\s\S]*?```/g,
+																	'',
+																)
+																.replace(
+																	/`([^`]+)`/g,
+																	'$1',
+																)
+																// Remove links [text](url)
+																.replace(
+																	/\[([^\]]+)\]\([^\)]+\)/g,
+																	'$1',
+																)
+																// Remove images ![alt](url)
+																.replace(
+																	/!\[([^\]]*)\]\([^\)]+\)/g,
+																	'',
+																)
+																// Remove horizontal rules
+																.replace(
+																	/^[-*_]{3,}$/g,
+																	'',
+																)
+																// Remove blockquotes
+																.replace(
+																	/^>\s*/g,
+																	'',
+																)
+																.trim();
 
-														// Skip empty lines
-														if (!cleanLine) {
+															// Skip empty lines
+															if (!cleanLine) {
+																return (
+																	<br
+																		key={
+																			index
+																		}
+																	/>
+																);
+															}
+
+															// Display as paragraph
 															return (
-																<br
+																<p
 																	key={index}
-																/>
+																	className="mb-4 indent-0 first:indent-0"
+																>
+																	{cleanLine}
+																</p>
 															);
-														}
-
-														// Display as paragraph
-														return (
-															<p
-																key={index}
-																className="mb-4 indent-0 first:indent-0"
-															>
-																{cleanLine}
-															</p>
-														);
-													})}
+														})}
+												</div>
 											</div>
 										</div>
-									</div>
 
-									{/* Bottom page number */}
-									<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
-										1
+										{/* Bottom page number */}
+										<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+											1
+										</div>
 									</div>
-								</div>
+								)}
 							</div>
 						</div>
 					</div>
