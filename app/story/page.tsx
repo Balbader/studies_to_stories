@@ -254,6 +254,8 @@ export default function Story() {
 			setEnhancedText(null);
 			setEnhanceError(null);
 			setShowDiff(false);
+			setStoryResult(null);
+			setStoryError(null);
 		}
 	}, []);
 
@@ -401,12 +403,62 @@ export default function Story() {
 						);
 					}
 
-					const { enhanceLesson } = await import('./action');
+					const { enhanceLesson, createStory } = await import(
+						'./action'
+					);
+
+					// Enhance the lesson
 					const enhanced = await enhanceLesson(enhanceFormData);
 					clearInterval(enhanceProgressInterval);
-					setProgress(100); // Complete
+					setProgress(60); // Enhancement complete
 					setEnhancedText(enhanced);
-					setSuccess(true);
+
+					// Create the story
+					setIsCreatingStory(true);
+					setStoryError(null);
+					setStoryResult(null);
+
+					const storyProgressInterval = setInterval(() => {
+						setProgress((prev) => {
+							if (prev < 95) {
+								return Math.min(prev + 1.5, 95);
+							}
+							return prev;
+						});
+					}, 500);
+
+					try {
+						const storyFormData = new FormData();
+						storyFormData.append(
+							'lessonContent',
+							result.combined.combinedText,
+						);
+						storyFormData.append('storytone', storytone);
+						storyFormData.append('ageMode', ageMode);
+						if (result.combined.totalDocuments) {
+							storyFormData.append(
+								'lessonTitle',
+								`Lesson from ${result.combined.totalDocuments} document${result.combined.totalDocuments !== 1 ? 's' : ''}`,
+							);
+						}
+
+						const storyResult = await createStory(storyFormData);
+						clearInterval(storyProgressInterval);
+						setProgress(100); // Complete
+						setStoryResult(storyResult);
+						setSuccess(true);
+					} catch (storyErr) {
+						clearInterval(storyProgressInterval);
+						setStoryError(
+							storyErr instanceof Error
+								? storyErr.message
+								: 'Failed to create story',
+						);
+						// Still show success for extraction and enhancement even if story creation fails
+						setSuccess(true);
+					} finally {
+						setIsCreatingStory(false);
+					}
 				} catch (enhanceErr) {
 					clearInterval(enhanceProgressInterval);
 					setEnhanceError(
@@ -551,9 +603,9 @@ export default function Story() {
 							className="mx-auto mb-6 max-w-2xl text-lg leading-relaxed text-stone-600 sm:text-xl"
 							style={{ fontFamily: 'var(--font-crimson)' }}
 						>
-							Upload your documents, extract the content, and let
-							our AI transform your studies into engaging,
-							enhanced lessons.
+							Upload your documents, choose your story settings,
+							and let our AI transform your studies into engaging
+							stories and enhanced lessons in one seamless flow.
 						</p>
 					</div>
 				</div>
@@ -583,8 +635,9 @@ export default function Story() {
 											fontFamily: 'var(--font-crimson)',
 										}}
 									>
-										Select PDF or Word documents to begin
-										your transformation journey
+										Select PDF or Word documents, choose
+										your story settings, and get both your
+										story and enhanced lesson in one go
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
@@ -594,15 +647,135 @@ export default function Story() {
 									/>
 
 									{files.length > 0 && (
-										<div className="mt-6 space-y-4">
-											{isExtracting || isEnhancing ? (
+										<div className="mt-6 space-y-6">
+											{/* Story Creation Criteria */}
+											<div className="rounded-lg border border-stone-200/50 bg-stone-50/30 p-4">
+												<h3
+													className="mb-4 font-serif text-lg font-semibold text-stone-900"
+													style={{
+														fontFamily:
+															'var(--font-playfair)',
+													}}
+												>
+													Story Creation Settings
+												</h3>
+												<div className="grid gap-4 md:grid-cols-2">
+													{/* Storytone Selector */}
+													<div className="space-y-2">
+														<Label
+															htmlFor="storytone"
+															className="text-stone-700 font-medium"
+														>
+															Storytone
+														</Label>
+														<Select
+															value={storytone}
+															onValueChange={(
+																value,
+															) =>
+																setStorytone(
+																	value as typeof storytone,
+																)
+															}
+															disabled={
+																isExtracting ||
+																isEnhancing ||
+																isCreatingStory
+															}
+														>
+															<SelectTrigger
+																id="storytone"
+																className="w-full bg-white"
+															>
+																<SelectValue placeholder="Select a storytone" />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="dark">
+																	Dark
+																</SelectItem>
+																<SelectItem value="humorous">
+																	Humorous
+																</SelectItem>
+																<SelectItem value="poetic">
+																	Poetic
+																</SelectItem>
+																<SelectItem value="epic">
+																	Epic
+																</SelectItem>
+																<SelectItem value="adventure">
+																	Adventure
+																</SelectItem>
+																<SelectItem value="mystery">
+																	Mystery
+																</SelectItem>
+																<SelectItem value="slice-of-life">
+																	Slice of
+																	Life
+																</SelectItem>
+															</SelectContent>
+														</Select>
+													</div>
+
+													{/* Age Mode Selector */}
+													<div className="space-y-2">
+														<Label
+															htmlFor="ageMode"
+															className="text-stone-700 font-medium"
+														>
+															Age Mode
+														</Label>
+														<Select
+															value={ageMode}
+															onValueChange={(
+																value,
+															) =>
+																setAgeMode(
+																	value as typeof ageMode,
+																)
+															}
+															disabled={
+																isExtracting ||
+																isEnhancing ||
+																isCreatingStory
+															}
+														>
+															<SelectTrigger
+																id="ageMode"
+																className="w-full bg-white"
+															>
+																<SelectValue placeholder="Select age mode" />
+															</SelectTrigger>
+															<SelectContent>
+																<SelectItem value="children">
+																	Children
+																</SelectItem>
+																<SelectItem value="ya">
+																	Young Adult
+																	(YA)
+																</SelectItem>
+																<SelectItem value="adult">
+																	Adult
+																</SelectItem>
+															</SelectContent>
+														</Select>
+													</div>
+												</div>
+											</div>
+
+											{isExtracting ||
+											isEnhancing ||
+											isCreatingStory ? (
 												<div className="space-y-3">
 													<div className="space-y-2">
 														<div className="flex items-center justify-between text-sm">
 															<span className="font-medium text-stone-700">
 																{isExtracting
 																	? 'Extracting text...'
-																	: 'Enhancing lesson...'}
+																	: isEnhancing
+																		? 'Enhancing lesson...'
+																		: isCreatingStory
+																			? 'Creating story... (Lesson → Characters → Scene → Story)'
+																			: 'Processing...'}
 															</span>
 															<span className="text-stone-500">
 																{progress}%
@@ -636,8 +809,9 @@ export default function Story() {
 													size="lg"
 												>
 													<Sparkles className="mr-2 size-4" />
-													Extract & Enhance from{' '}
-													{files.length} File
+													Create Story & Enhanced
+													Lesson from {files.length}{' '}
+													File
 													{files.length !== 1
 														? 's'
 														: ''}
@@ -655,6 +829,17 @@ export default function Story() {
 												</Alert>
 											)}
 
+											{storyError && (
+												<Alert variant="destructive">
+													<AlertTitle>
+														Story Creation Error
+													</AlertTitle>
+													<AlertDescription>
+														{storyError}
+													</AlertDescription>
+												</Alert>
+											)}
+
 											{success &&
 												extractedData.length > 0 && (
 													<Alert className="border-green-200 bg-green-50/50">
@@ -663,9 +848,12 @@ export default function Story() {
 															Success!
 														</AlertTitle>
 														<AlertDescription className="text-green-800">
-															{enhancedText
-																? `Successfully extracted and enhanced text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. The enhanced lesson is available below.`
-																: `Successfully extracted text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. ${enhanceError ? 'Enhancement failed, but you can try manually below.' : 'The extracted data is available below.'}`}
+															{storyResult &&
+															enhancedText
+																? `Successfully created story and enhanced lesson from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. Both are available below.`
+																: enhancedText
+																	? `Successfully extracted and enhanced text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. ${storyError ? 'Story creation failed, but the enhanced lesson is available below.' : 'The enhanced lesson is available below.'}`
+																	: `Successfully extracted text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. ${enhanceError ? 'Enhancement failed, but you can try manually below.' : 'The extracted data is available below.'}`}
 														</AlertDescription>
 													</Alert>
 												)}
@@ -678,8 +866,8 @@ export default function Story() {
 				</div>
 			</section>
 
-			{/* Story Creation Section */}
-			{combinedData && !storyResult && (
+			{/* Story Creation Section - Hidden since story is now created automatically */}
+			{false && combinedData && !storyResult && (
 				<section className="border-t border-stone-200/40 py-4 md:py-6">
 					<div className="container mx-auto px-4">
 						<div className="mx-auto max-w-6xl">
