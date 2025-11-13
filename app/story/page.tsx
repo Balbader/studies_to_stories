@@ -15,6 +15,9 @@ export default function Story() {
 	const [isExtracting, setIsExtracting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
+	const [enhancedText, setEnhancedText] = useState<string | null>(null);
+	const [isEnhancing, setIsEnhancing] = useState(false);
+	const [enhanceError, setEnhanceError] = useState<string | null>(null);
 
 	const handleFileSelect = useCallback((selectedFiles: File[]) => {
 		setFiles(selectedFiles);
@@ -22,6 +25,8 @@ export default function Story() {
 		setSuccess(false);
 		setExtractedData([]);
 		setCombinedData(null);
+		setEnhancedText(null);
+		setEnhanceError(null);
 	}, []);
 
 	const handleExtractText = async () => {
@@ -62,6 +67,41 @@ export default function Story() {
 			);
 		} finally {
 			setIsExtracting(false);
+		}
+	};
+
+	const handleEnhanceLesson = async () => {
+		if (!combinedData?.combinedText) {
+			setEnhanceError(
+				'No combined text available. Please extract text first.',
+			);
+			return;
+		}
+
+		setIsEnhancing(true);
+		setEnhanceError(null);
+		setEnhancedText(null);
+
+		try {
+			const formData = new FormData();
+			formData.append('lessonContent', combinedData.combinedText);
+			// Optionally add metadata if available
+			if (combinedData.totalDocuments) {
+				formData.append(
+					'lessonTitle',
+					`Lesson from ${combinedData.totalDocuments} document${combinedData.totalDocuments !== 1 ? 's' : ''}`,
+				);
+			}
+
+			const { enhanceLesson } = await import('./action');
+			const enhanced = await enhanceLesson(formData);
+			setEnhancedText(enhanced);
+		} catch (err) {
+			setEnhanceError(
+				err instanceof Error ? err.message : 'Failed to enhance lesson',
+			);
+		} finally {
+			setIsEnhancing(false);
 		}
 	};
 
@@ -169,6 +209,50 @@ export default function Story() {
 										{JSON.stringify(combinedData, null, 2)}
 									</pre>
 								</details>
+							</div>
+
+							<div className="mt-4">
+								<Button
+									onClick={handleEnhanceLesson}
+									disabled={isEnhancing}
+									className="w-full"
+									variant="default"
+								>
+									{isEnhancing
+										? 'Enhancing lesson...'
+										: 'Enhance Lesson with AI'}
+								</Button>
+
+								{enhanceError && (
+									<Alert
+										variant="destructive"
+										className="mt-4"
+									>
+										<AlertTitle>
+											Enhancement Error
+										</AlertTitle>
+										<AlertDescription>
+											{enhanceError}
+										</AlertDescription>
+									</Alert>
+								)}
+
+								{enhancedText && (
+									<div className="mt-6 space-y-4">
+										<h2 className="text-xl font-semibold">
+											Enhanced Lesson
+										</h2>
+										<div className="border rounded-lg p-4 bg-muted/50">
+											<div className="text-sm text-muted-foreground mb-4">
+												Enhanced:{' '}
+												{new Date().toLocaleString()}
+											</div>
+											<div className="mt-2 p-4 bg-background border rounded text-sm overflow-auto max-h-[600px] whitespace-pre-wrap leading-relaxed">
+												{enhancedText}
+											</div>
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 					)}
