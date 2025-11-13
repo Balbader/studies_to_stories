@@ -11,6 +11,7 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import Navbar from '@/components/home/Navbar';
 import {
 	Upload,
@@ -41,6 +42,10 @@ export default function Story() {
 	const [isEnhancing, setIsEnhancing] = useState(false);
 	const [enhanceError, setEnhanceError] = useState<string | null>(null);
 	const [showDiff, setShowDiff] = useState(false);
+	const [progress, setProgress] = useState(0);
+	const [elapsedTime, setElapsedTime] = useState(0);
+	const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+	const startTimeRef = useRef<number | null>(null);
 
 	// Refs for animations and scrolling
 	const heroRef = useRef<HTMLDivElement>(null);
@@ -107,6 +112,45 @@ export default function Story() {
 			}, 100);
 		}
 	}, [enhancedText]);
+
+	// Timer and progress tracking
+	useEffect(() => {
+		if (isExtracting || isEnhancing) {
+			// Start timer
+			if (!startTimeRef.current) {
+				startTimeRef.current = Date.now();
+			}
+
+			timerIntervalRef.current = setInterval(() => {
+				if (startTimeRef.current) {
+					const elapsed = Math.floor(
+						(Date.now() - startTimeRef.current) / 1000,
+					);
+					setElapsedTime(elapsed);
+				}
+			}, 1000);
+
+			// Update progress based on state
+			// Progress will be updated more granularly in the extraction/enhancement handlers
+		} else {
+			// Reset when done
+			if (timerIntervalRef.current) {
+				clearInterval(timerIntervalRef.current);
+				timerIntervalRef.current = null;
+			}
+			if (!isExtracting && !isEnhancing) {
+				setElapsedTime(0);
+				setProgress(0);
+				startTimeRef.current = null;
+			}
+		}
+
+		return () => {
+			if (timerIntervalRef.current) {
+				clearInterval(timerIntervalRef.current);
+			}
+		};
+	}, [isExtracting, isEnhancing]);
 
 	// Continuous animation for View Diff button
 	useEffect(() => {
@@ -194,6 +238,9 @@ export default function Story() {
 		setError(null);
 		setSuccess(false);
 		setEnhanceError(null);
+		setProgress(5); // Start with small progress
+		setElapsedTime(0);
+		startTimeRef.current = Date.now();
 
 		try {
 			const formData = new FormData();
@@ -201,18 +248,70 @@ export default function Story() {
 				formData.append('files', file);
 			});
 
+			// Simulate progress during extraction
+			const progressInterval = setInterval(() => {
+				setProgress((prev) => {
+					if (prev < 45) {
+						return Math.min(prev + 2, 45);
+					}
+					return prev;
+				});
+			}, 500);
+
 			const response = await fetch('/api/extract-text', {
 				method: 'POST',
 				body: formData,
 			});
 
+			clearInterval(progressInterval);
+
+			// Get content type once before reading body
+			const contentType = response.headers.get('content-type') || '';
+
 			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || 'Failed to extract text');
+				let errorMessage = 'Failed to extract text';
+				try {
+					if (contentType.includes('application/json')) {
+						const errorData = await response.json();
+						errorMessage =
+							errorData.message ||
+							errorData.error ||
+							errorMessage;
+					} else {
+						const text = await response.text();
+						errorMessage = text || errorMessage;
+					}
+				} catch (parseError) {
+					// If we can't parse the error, use the status text
+					errorMessage = response.statusText || errorMessage;
+				}
+				throw new Error(errorMessage);
 			}
 
-			const result = await response.json();
+			// Ensure response is JSON before parsing
+			if (!contentType.includes('application/json')) {
+				const text = await response.text();
+				throw new Error(
+					`Unexpected response format: ${text.substring(0, 100)}`,
+				);
+			}
+
+			let result;
+			try {
+				result = await response.json();
+			} catch (jsonError) {
+				// Response body already consumed, can't read again
+				throw new Error(
+					`Failed to parse JSON response. The server may have returned invalid JSON.`,
+				);
+			}
+
+			if (!result || !result.data) {
+				throw new Error('Invalid response format from server');
+			}
+
 			setExtractedData(result.data);
+			setProgress(50); // Extraction complete
 
 			if (result.combined) {
 				setCombinedData(result.combined);
@@ -220,6 +319,16 @@ export default function Story() {
 				// Automatically enhance the text after extraction
 				setIsEnhancing(true);
 				setEnhancedText(null);
+
+				// Simulate progress during enhancement
+				const enhanceProgressInterval = setInterval(() => {
+					setProgress((prev) => {
+						if (prev < 95) {
+							return Math.min(prev + 1.5, 95);
+						}
+						return prev;
+					});
+				}, 500);
 
 				try {
 					const enhanceFormData = new FormData();
@@ -236,9 +345,12 @@ export default function Story() {
 
 					const { enhanceLesson } = await import('./action');
 					const enhanced = await enhanceLesson(enhanceFormData);
+					clearInterval(enhanceProgressInterval);
+					setProgress(100); // Complete
 					setEnhancedText(enhanced);
 					setSuccess(true);
 				} catch (enhanceErr) {
+					clearInterval(enhanceProgressInterval);
 					setEnhanceError(
 						enhanceErr instanceof Error
 							? enhanceErr.message
@@ -374,35 +486,54 @@ export default function Story() {
 
 									{files.length > 0 && (
 										<div className="mt-6 space-y-4">
-											<Button
-												onClick={handleExtractText}
-												disabled={
-													isExtracting || isEnhancing
-												}
-												className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
-												size="lg"
-											>
-												{isExtracting ? (
-													<>
-														<Loader2 className="mr-2 size-4 animate-spin" />
-														Extracting text...
-													</>
-												) : isEnhancing ? (
-													<>
-														<Loader2 className="mr-2 size-4 animate-spin" />
-														Enhancing lesson...
-													</>
-												) : (
-													<>
-														<Sparkles className="mr-2 size-4" />
-														Extract & Enhance from{' '}
-														{files.length} File
-														{files.length !== 1
-															? 's'
-															: ''}
-													</>
-												)}
-											</Button>
+											{isExtracting || isEnhancing ? (
+												<div className="space-y-3">
+													<div className="space-y-2">
+														<div className="flex items-center justify-between text-sm">
+															<span className="font-medium text-stone-700">
+																{isExtracting
+																	? 'Extracting text...'
+																	: 'Enhancing lesson...'}
+															</span>
+															<span className="text-stone-500">
+																{progress}%
+															</span>
+														</div>
+														<Progress
+															value={progress}
+															className="h-3 bg-stone-200"
+														/>
+													</div>
+													<div className="flex items-center justify-center gap-2 text-sm text-stone-500">
+														<Loader2 className="size-4 animate-spin" />
+														<span>
+															{Math.floor(
+																elapsedTime /
+																	60,
+															)}
+															:
+															{String(
+																elapsedTime %
+																	60,
+															).padStart(2, '0')}
+														</span>
+													</div>
+												</div>
+											) : (
+												<Button
+													onClick={handleExtractText}
+													disabled={false}
+													className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
+													size="lg"
+												>
+													<Sparkles className="mr-2 size-4" />
+													Extract & Enhance from{' '}
+													{files.length} File
+													{files.length !== 1
+														? 's'
+														: ''}
+												</Button>
+											)}
 
 											{error && (
 												<Alert variant="destructive">
