@@ -301,7 +301,7 @@ export default function Story() {
 			{/* Hero Section */}
 			<section
 				ref={heroRef}
-				className="relative overflow-hidden border-b border-stone-200/40 pt-24 md:pt-28"
+				className="relative overflow-hidden border-b border-stone-200/40 pt-16 md:pt-20"
 			>
 				{/* Book binding decoration */}
 				<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
@@ -312,22 +312,22 @@ export default function Story() {
 					1
 				</div>
 
-				<div className="container mx-auto px-4 py-12 md:py-16">
-					<div className="mx-auto max-w-4xl text-center">
-						<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-stone-50/80 backdrop-blur-sm px-5 py-2 text-sm">
+				<div className="container mx-auto px-4 py-4 md:py-6">
+					<div className="mx-auto max-w-6xl text-center">
+						<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-stone-50/80 backdrop-blur-sm px-5 py-2 text-sm">
 							<Sparkles className="size-4 text-stone-600" />
 							<span className="text-stone-700 font-medium">
 								Transform Your Documents
 							</span>
 						</div>
 						<h1
-							className="mb-6 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl md:text-6xl"
+							className="mb-4 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl md:text-6xl"
 							style={{ fontFamily: 'var(--font-playfair)' }}
 						>
 							Create Your Story
 						</h1>
 						<p
-							className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-stone-600 sm:text-xl"
+							className="mx-auto mb-6 max-w-2xl text-lg leading-relaxed text-stone-600 sm:text-xl"
 							style={{ fontFamily: 'var(--font-crimson)' }}
 						>
 							Upload your documents, extract the content, and let
@@ -339,9 +339,9 @@ export default function Story() {
 			</section>
 
 			{/* Upload Section */}
-			<section className="py-12 md:py-16">
+			<section className="py-4 md:py-6">
 				<div className="container mx-auto px-4">
-					<div className="mx-auto max-w-4xl">
+					<div className="mx-auto max-w-6xl">
 						<div ref={uploadRef}>
 							<Card className="book-shadow border-stone-200/50 bg-white/95">
 								<CardHeader>
@@ -440,17 +440,17 @@ export default function Story() {
 
 			{/* Enhanced Text Section */}
 			{enhancedText && (
-				<section className="border-t border-stone-200/40 py-12 md:py-16">
+				<section className="border-t border-stone-200/40 py-4 md:py-6">
 					<div className="container mx-auto px-4">
-						<div className="mx-auto max-w-4xl">
-							<div className="mb-8 text-center">
-								<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-stone-50/80 backdrop-blur-sm px-5 py-2 text-sm">
+						<div className="mx-auto max-w-6xl">
+							<div className="mb-4 text-center">
+								<div className="mb-2 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-stone-50/80 backdrop-blur-sm px-5 py-2 text-sm">
 									<Sparkles className="size-4 text-stone-600" />
 									<span className="text-stone-700 font-medium">
 										Enhanced Lesson
 									</span>
 								</div>
-								<div className="mb-4 flex items-center justify-center gap-4">
+								<div className="mb-2 flex items-center justify-center gap-4">
 									<Button
 										ref={viewDiffButtonRef}
 										onClick={() => setShowDiff(!showDiff)}
