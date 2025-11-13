@@ -34,7 +34,9 @@ export async function extractImagesFromDOCX(
 	const buffer = Buffer.from(arrayBuffer);
 
 	try {
-		const result = await mammoth.images.extractRaw({ buffer });
+		// Use type assertion since mammoth types may not include images.extractRaw
+		// but the method exists at runtime in mammoth 1.11.0+
+		const result = await (mammoth.images as any).extractRaw({ buffer });
 		const images: ExtractedImage[] = [];
 
 		for (const image of result) {
