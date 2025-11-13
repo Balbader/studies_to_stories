@@ -1,10 +1,30 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import UploadComponent from '@/components/story/UploadComponent';
 import { Button } from '@/components/ui/button';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Navbar from '@/components/home/Navbar';
+import {
+	Upload,
+	FileText,
+	Sparkles,
+	CheckCircle2,
+	Loader2,
+	BookOpen,
+} from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type { ExtractedTextData, CombinedTextData } from '@/lib/text-extractor';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Story() {
 	const [files, setFiles] = useState<File[]>([]);
@@ -19,14 +39,111 @@ export default function Story() {
 	const [isEnhancing, setIsEnhancing] = useState(false);
 	const [enhanceError, setEnhanceError] = useState<string | null>(null);
 
+	// Refs for animations and scrolling
+	const heroRef = useRef<HTMLDivElement>(null);
+	const uploadRef = useRef<HTMLDivElement>(null);
+	const combinedRef = useRef<HTMLDivElement>(null);
+	const enhancedRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const ctx = gsap.context(() => {
+			// Hero section animation
+			if (heroRef.current) {
+				gsap.from(heroRef.current.children, {
+					opacity: 0,
+					y: 30,
+					duration: 0.8,
+					stagger: 0.15,
+					ease: 'power3.out',
+					delay: 0.3,
+				});
+			}
+
+			// Upload section animation
+			if (uploadRef.current) {
+				gsap.from(uploadRef.current, {
+					opacity: 0,
+					y: 50,
+					scale: 0.95,
+					duration: 0.7,
+					ease: 'power3.out',
+					scrollTrigger: {
+						trigger: uploadRef.current,
+						start: 'top 85%',
+					},
+				});
+			}
+
+			// Combined data animation
+			if (combinedRef.current) {
+				gsap.from(combinedRef.current, {
+					opacity: 0,
+					y: 50,
+					rotationX: 10,
+					duration: 0.8,
+					ease: 'power3.out',
+					scrollTrigger: {
+						trigger: combinedRef.current,
+						start: 'top 85%',
+					},
+				});
+			}
+
+			// Enhanced text animation
+			if (enhancedRef.current) {
+				gsap.from(enhancedRef.current, {
+					opacity: 0,
+					y: 50,
+					scale: 0.95,
+					duration: 0.8,
+					ease: 'power3.out',
+					scrollTrigger: {
+						trigger: enhancedRef.current,
+						start: 'top 85%',
+					},
+				});
+			}
+		});
+
+		return () => ctx.revert();
+	}, [combinedData, enhancedText]);
+
+	// Auto-scroll to sections when they appear
+	useEffect(() => {
+		if (combinedData && combinedRef.current) {
+			setTimeout(() => {
+				combinedRef.current?.scrollIntoView({
+					behavior: 'smooth',
+					block: 'start',
+				});
+			}, 100);
+		}
+	}, [combinedData]);
+
+	useEffect(() => {
+		if (enhancedText && enhancedRef.current) {
+			setTimeout(() => {
+				enhancedRef.current?.scrollIntoView({
+					behavior: 'smooth',
+					block: 'start',
+				});
+			}, 100);
+		}
+	}, [enhancedText]);
+
 	const handleFileSelect = useCallback((selectedFiles: File[]) => {
+		// Update files state
 		setFiles(selectedFiles);
 		setError(null);
-		setSuccess(false);
-		setExtractedData([]);
-		setCombinedData(null);
-		setEnhancedText(null);
-		setEnhanceError(null);
+
+		// Only reset success and extracted data if we're clearing files
+		if (selectedFiles.length === 0) {
+			setSuccess(false);
+			setExtractedData([]);
+			setCombinedData(null);
+			setEnhancedText(null);
+			setEnhanceError(null);
+		}
 	}, []);
 
 	const handleExtractText = async () => {
@@ -85,7 +202,6 @@ export default function Story() {
 		try {
 			const formData = new FormData();
 			formData.append('lessonContent', combinedData.combinedText);
-			// Optionally add metadata if available
 			if (combinedData.totalDocuments) {
 				formData.append(
 					'lessonTitle',
@@ -106,157 +222,382 @@ export default function Story() {
 	};
 
 	return (
-		<div className="container mx-auto py-8 px-4 max-w-4xl">
-			<h1 className="text-3xl font-bold mb-6">Upload Your Documents</h1>
-			<UploadComponent onFileSelect={handleFileSelect} />
+		<div className="min-h-screen w-full book-page">
+			<Navbar />
+			{/* Hero Section */}
+			<section
+				ref={heroRef}
+				className="relative overflow-hidden border-b border-stone-200/40 pt-24 md:pt-28"
+			>
+				{/* Book binding decoration */}
+				<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+				<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
 
-			{files.length > 0 && (
-				<div className="mt-6 space-y-4">
-					<Button
-						onClick={handleExtractText}
-						disabled={isExtracting}
-						className="w-full"
-					>
-						{isExtracting
-							? 'Extracting text...'
-							: `Extract Text from ${files.length} File${files.length !== 1 ? 's' : ''}`}
-					</Button>
-
-					{error && (
-						<Alert variant="destructive">
-							<AlertTitle>Error</AlertTitle>
-							<AlertDescription>{error}</AlertDescription>
-						</Alert>
-					)}
-
-					{success && extractedData.length > 0 && (
-						<Alert>
-							<AlertTitle>Success!</AlertTitle>
-							<AlertDescription>
-								Successfully extracted text from{' '}
-								{extractedData.length} file
-								{extractedData.length !== 1 ? 's' : ''}. The
-								extracted data is available in JSON format
-								below.
-							</AlertDescription>
-						</Alert>
-					)}
-
-					{extractedData.length > 0 && (
-						<div className="space-y-4">
-							<h2 className="text-xl font-semibold">
-								Extracted Text Data (JSON)
-							</h2>
-							<div className="space-y-4">
-								{extractedData.map((data, index) => (
-									<div
-										key={index}
-										className="border rounded-lg p-4 bg-muted/50"
-									>
-										<h3 className="font-medium mb-2">
-											{data.fileName}
-										</h3>
-										<div className="text-sm text-muted-foreground mb-2">
-											Type: {data.fileType.toUpperCase()}{' '}
-											• Extracted:{' '}
-											{new Date(
-												data.extractedAt,
-											).toLocaleString()}
-										</div>
-										<details className="mt-2">
-											<summary className="cursor-pointer text-sm font-medium">
-												View Extracted Text
-											</summary>
-											<pre className="mt-2 p-3 bg-background border rounded text-xs overflow-auto max-h-64">
-												{JSON.stringify(data, null, 2)}
-											</pre>
-										</details>
-									</div>
-								))}
-							</div>
-						</div>
-					)}
-
-					{combinedData && (
-						<div className="space-y-4 mt-6">
-							<h2 className="text-xl font-semibold">
-								Combined Text (For Lesson Agent)
-							</h2>
-							<div className="border rounded-lg p-4 bg-muted/50">
-								<div className="text-sm text-muted-foreground mb-4">
-									Total Documents:{' '}
-									{combinedData.totalDocuments} • Total
-									Characters:{' '}
-									{combinedData.totalCharacters.toLocaleString()}{' '}
-									• Combined:{' '}
-									{new Date(
-										combinedData.combinedAt,
-									).toLocaleString()}
-								</div>
-								<details className="mt-2" open>
-									<summary className="cursor-pointer text-sm font-medium mb-2">
-										View Combined Text
-									</summary>
-									<div className="mt-2 p-3 bg-background border rounded text-sm overflow-auto max-h-96 whitespace-pre-wrap">
-										{combinedData.combinedText}
-									</div>
-								</details>
-								<details className="mt-4">
-									<summary className="cursor-pointer text-sm font-medium">
-										View Combined JSON Object
-									</summary>
-									<pre className="mt-2 p-3 bg-background border rounded text-xs overflow-auto max-h-64">
-										{JSON.stringify(combinedData, null, 2)}
-									</pre>
-								</details>
-							</div>
-
-							<div className="mt-4">
-								<Button
-									onClick={handleEnhanceLesson}
-									disabled={isEnhancing}
-									className="w-full"
-									variant="default"
-								>
-									{isEnhancing
-										? 'Enhancing lesson...'
-										: 'Enhance Lesson with AI'}
-								</Button>
-
-								{enhanceError && (
-									<Alert
-										variant="destructive"
-										className="mt-4"
-									>
-										<AlertTitle>
-											Enhancement Error
-										</AlertTitle>
-										<AlertDescription>
-											{enhanceError}
-										</AlertDescription>
-									</Alert>
-								)}
-
-								{enhancedText && (
-									<div className="mt-6 space-y-4">
-										<h2 className="text-xl font-semibold">
-											Enhanced Lesson
-										</h2>
-										<div className="border rounded-lg p-4 bg-muted/50">
-											<div className="text-sm text-muted-foreground mb-4">
-												Enhanced:{' '}
-												{new Date().toLocaleString()}
-											</div>
-											<div className="mt-2 p-4 bg-background border rounded text-sm overflow-auto max-h-[600px] whitespace-pre-wrap leading-relaxed">
-												{enhancedText}
-											</div>
-										</div>
-									</div>
-								)}
-							</div>
-						</div>
-					)}
+				{/* Page number */}
+				<div className="absolute top-8 right-8 text-stone-400/50 font-serif text-xs tracking-wider">
+					1
 				</div>
+
+				<div className="container mx-auto px-4 py-12 md:py-16">
+					<div className="mx-auto max-w-4xl text-center">
+						<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-stone-50/80 backdrop-blur-sm px-5 py-2 text-sm">
+							<Sparkles className="size-4 text-stone-600" />
+							<span className="text-stone-700 font-medium">
+								Transform Your Documents
+							</span>
+						</div>
+						<h1
+							className="mb-6 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl md:text-6xl"
+							style={{ fontFamily: 'var(--font-playfair)' }}
+						>
+							Create Your Story
+						</h1>
+						<p
+							className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-stone-600 sm:text-xl"
+							style={{ fontFamily: 'var(--font-crimson)' }}
+						>
+							Upload your documents, extract the content, and let
+							our AI transform your studies into engaging,
+							enhanced lessons.
+						</p>
+					</div>
+				</div>
+			</section>
+
+			{/* Upload Section */}
+			<section className="py-12 md:py-16">
+				<div className="container mx-auto px-4">
+					<div className="mx-auto max-w-4xl">
+						<div ref={uploadRef}>
+							<Card className="book-shadow border-stone-200/50 bg-white/95">
+								<CardHeader>
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
+										<Upload className="size-6 text-stone-700" />
+									</div>
+									<CardTitle
+										className="font-serif text-stone-900"
+										style={{
+											fontFamily: 'var(--font-playfair)',
+										}}
+									>
+										Upload Your Documents
+									</CardTitle>
+									<CardDescription
+										className="text-stone-600"
+										style={{
+											fontFamily: 'var(--font-crimson)',
+										}}
+									>
+										Select PDF or Word documents to begin
+										your transformation journey
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<UploadComponent
+										onFileSelect={handleFileSelect}
+										files={files}
+									/>
+
+									{files.length > 0 && (
+										<div className="mt-6 space-y-4">
+											<Button
+												onClick={handleExtractText}
+												disabled={isExtracting}
+												className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
+												size="lg"
+											>
+												{isExtracting ? (
+													<>
+														<Loader2 className="mr-2 size-4 animate-spin" />
+														Extracting text...
+													</>
+												) : (
+													<>
+														<FileText className="mr-2 size-4" />
+														Extract Text from{' '}
+														{files.length} File
+														{files.length !== 1
+															? 's'
+															: ''}
+													</>
+												)}
+											</Button>
+
+											{error && (
+												<Alert variant="destructive">
+													<AlertTitle>
+														Error
+													</AlertTitle>
+													<AlertDescription>
+														{error}
+													</AlertDescription>
+												</Alert>
+											)}
+
+											{success &&
+												extractedData.length > 0 && (
+													<Alert className="border-green-200 bg-green-50/50">
+														<CheckCircle2 className="size-4 text-green-600" />
+														<AlertTitle className="text-green-900">
+															Success!
+														</AlertTitle>
+														<AlertDescription className="text-green-800">
+															Successfully
+															extracted text from{' '}
+															{
+																extractedData.length
+															}{' '}
+															file
+															{extractedData.length !==
+															1
+																? 's'
+																: ''}
+															. The extracted data
+															is available below.
+														</AlertDescription>
+													</Alert>
+												)}
+										</div>
+									)}
+								</CardContent>
+							</Card>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* Combined Text Section */}
+			{combinedData && (
+				<section className="py-12 md:py-16">
+					<div className="container mx-auto px-4">
+						<div className="mx-auto max-w-4xl">
+							<div className="mb-4 text-right text-stone-400/50 font-serif text-xs tracking-wider">
+								2
+							</div>
+							<div ref={combinedRef}>
+								<Card className="book-shadow border-stone-200/50 bg-white/95">
+									<CardHeader>
+										<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
+											<BookOpen className="size-6 text-stone-700" />
+										</div>
+										<CardTitle
+											className="font-serif text-stone-900"
+											style={{
+												fontFamily:
+													'var(--font-playfair)',
+											}}
+										>
+											Combined Lesson Content
+										</CardTitle>
+										<CardDescription
+											className="text-stone-600"
+											style={{
+												fontFamily:
+													'var(--font-crimson)',
+											}}
+										>
+											Total Documents:{' '}
+											{combinedData.totalDocuments} •
+											Total Characters:{' '}
+											{combinedData.totalCharacters.toLocaleString()}{' '}
+											• Combined:{' '}
+											{new Date(
+												combinedData.combinedAt,
+											).toLocaleString()}
+										</CardDescription>
+									</CardHeader>
+									<CardContent className="space-y-4">
+										<details className="mt-2" open>
+											<summary className="cursor-pointer text-sm font-medium text-stone-700 hover:text-stone-900 mb-2">
+												View Combined Text
+											</summary>
+											<div className="mt-3 p-4 bg-stone-50/50 border border-stone-200/50 rounded text-sm overflow-auto max-h-96 whitespace-pre-wrap leading-relaxed">
+												{combinedData.combinedText}
+											</div>
+										</details>
+
+										<Button
+											onClick={handleEnhanceLesson}
+											disabled={isEnhancing}
+											className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
+											size="lg"
+										>
+											{isEnhancing ? (
+												<>
+													<Loader2 className="mr-2 size-4 animate-spin" />
+													Enhancing lesson...
+												</>
+											) : (
+												<>
+													<Sparkles className="mr-2 size-4" />
+													Enhance Lesson with AI
+												</>
+											)}
+										</Button>
+
+										{enhanceError && (
+											<Alert variant="destructive">
+												<AlertTitle>
+													Enhancement Error
+												</AlertTitle>
+												<AlertDescription>
+													{enhanceError}
+												</AlertDescription>
+											</Alert>
+										)}
+									</CardContent>
+								</Card>
+							</div>
+						</div>
+					</div>
+				</section>
+			)}
+
+			{/* Enhanced Text Section */}
+			{enhancedText && (
+				<section className="border-t border-stone-200/40 py-12 md:py-16">
+					<div className="container mx-auto px-4">
+						<div className="mx-auto max-w-4xl">
+							<div className="mb-8 text-center">
+								<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-stone-50/80 backdrop-blur-sm px-5 py-2 text-sm">
+									<Sparkles className="size-4 text-stone-600" />
+									<span className="text-stone-700 font-medium">
+										Enhanced Lesson
+									</span>
+								</div>
+								<p
+									className="text-sm text-stone-500"
+									style={{
+										fontFamily: 'var(--font-crimson)',
+									}}
+								>
+									Enhanced: {new Date().toLocaleString()}
+								</p>
+							</div>
+							<div ref={enhancedRef}>
+								{/* Book Page Container */}
+								<div className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden">
+									{/* Book binding decoration */}
+									<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+									<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+
+									{/* Page number */}
+									<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+										1
+									</div>
+
+									{/* Book page content */}
+									<div className="px-8 md:px-12 py-10 md:py-16">
+										{/* Left margin line (like a notebook) */}
+										<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+
+										{/* Main content area with book-like typography */}
+										<div
+											className="prose prose-stone max-w-none book-content"
+											style={{
+												fontFamily:
+													'var(--font-crimson)',
+											}}
+										>
+											<div
+												className="text-stone-800 leading-relaxed text-base md:text-lg"
+												style={{
+													fontFamily:
+														'var(--font-crimson)',
+												}}
+											>
+												{enhancedText
+													.split('\n')
+													.map((line, index) => {
+														// Remove all markdown characters
+														let cleanLine = line
+															// Remove heading markers
+															.replace(
+																/^#+\s*/g,
+																'',
+															)
+															// Remove bold markers
+															.replace(
+																/\*\*/g,
+																'',
+															)
+															// Remove italic markers (but be careful not to remove asterisks in content)
+															.replace(
+																/\*([^*]+)\*/g,
+																'$1',
+															)
+															// Remove list markers
+															.replace(
+																/^[-*]\s+/g,
+																'',
+															)
+															.replace(
+																/^\d+\.\s+/g,
+																'',
+															)
+															// Remove code blocks
+															.replace(
+																/```[\s\S]*?```/g,
+																'',
+															)
+															.replace(
+																/`([^`]+)`/g,
+																'$1',
+															)
+															// Remove links [text](url)
+															.replace(
+																/\[([^\]]+)\]\([^\)]+\)/g,
+																'$1',
+															)
+															// Remove images ![alt](url)
+															.replace(
+																/!\[([^\]]*)\]\([^\)]+\)/g,
+																'',
+															)
+															// Remove horizontal rules
+															.replace(
+																/^[-*_]{3,}$/g,
+																'',
+															)
+															// Remove blockquotes
+															.replace(
+																/^>\s*/g,
+																'',
+															)
+															.trim();
+
+														// Skip empty lines
+														if (!cleanLine) {
+															return (
+																<br
+																	key={index}
+																/>
+															);
+														}
+
+														// Display as paragraph
+														return (
+															<p
+																key={index}
+																className="mb-4 indent-0 first:indent-0"
+															>
+																{cleanLine}
+															</p>
+														);
+													})}
+											</div>
+										</div>
+									</div>
+
+									{/* Bottom page number */}
+									<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+										1
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</section>
 			)}
 		</div>
 	);

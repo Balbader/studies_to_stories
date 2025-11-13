@@ -1,5 +1,4 @@
 import { Agent } from '@mastra/core/agent';
-import { textExtractorTool } from '../tools/text-extractor-tool';
 
 export const lessonEnhancerAgent = new Agent({
 	name: 'Lesson Enhancer Agent',
@@ -15,12 +14,9 @@ export const lessonEnhancerAgent = new Agent({
 		- DO NOT hallucinate facts, especially technical or scientific.
 		- Use concise, friendly, and educational language.
 
-		When tools are required:
-		- Use the "textExtractorTool" to extract text from files before enhancing.
+		The lesson content will be provided to you directly - you do not need to extract it from files.
 	`,
 
 	// Use a real model that is available in the ai-sdk/Mastra provider
 	model: 'anthropic/claude-haiku-4-5',
-
-	tools: { textExtractorTool },
 });

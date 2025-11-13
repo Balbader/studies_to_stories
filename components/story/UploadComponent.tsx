@@ -16,6 +16,7 @@ interface UploadComponentProps {
 	onFileSelect?: (files: File[]) => void;
 	maxSizeMB?: number;
 	className?: string;
+	files?: File[];
 }
 
 const ACCEPTED_FILE_TYPES = {
@@ -33,11 +34,25 @@ export default function UploadComponent({
 	onFileSelect,
 	maxSizeMB = DEFAULT_MAX_SIZE_MB,
 	className,
+	files: externalFiles,
 }: UploadComponentProps) {
-	const [files, setFiles] = useState<File[]>([]);
+	const [internalFiles, setInternalFiles] = useState<File[]>([]);
 	const [error, setError] = useState<string | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+
+	// Use external files if provided, otherwise use internal state
+	const files = externalFiles !== undefined ? externalFiles : internalFiles;
+	const setFiles =
+		externalFiles !== undefined
+			? (updater: File[] | ((prev: File[]) => File[])) => {
+					const newFiles =
+						typeof updater === 'function'
+							? updater(externalFiles)
+							: updater;
+					onFileSelect?.(newFiles);
+				}
+			: setInternalFiles;
 
 	const validateFile = (selectedFile: File): string | null => {
 		// Check file type
@@ -77,31 +92,46 @@ export default function UploadComponent({
 		}
 
 		if (validFiles.length > 0) {
-			setFiles((prev) => {
-				return [...prev, ...validFiles];
-			});
+			// If using external files, call onFileSelect with accumulated files
+			// Otherwise, update internal state
+			if (externalFiles !== undefined) {
+				// Remove duplicates by name
+				const existingNames = new Set(externalFiles.map((f) => f.name));
+				const newFiles = validFiles.filter(
+					(f) => !existingNames.has(f.name),
+				);
+				if (newFiles.length > 0) {
+					onFileSelect?.([...externalFiles, ...newFiles]);
+				}
+			} else {
+				setInternalFiles((prev) => {
+					// Remove duplicates by name
+					const existingNames = new Set(prev.map((f) => f.name));
+					const newFiles = validFiles.filter(
+						(f) => !existingNames.has(f.name),
+					);
+					return [...prev, ...newFiles];
+				});
+			}
 		}
 	};
 
-	// Call onFileSelect after files state has been updated
-	// Use a ref to track if this is the initial mount
-	const isInitialMount = useRef(true);
-
+	// Call onFileSelect after files state has been updated (only if using internal state)
 	useEffect(() => {
-		// Skip on initial mount
-		if (isInitialMount.current) {
-			isInitialMount.current = false;
-			return;
+		if (externalFiles === undefined && files.length > 0) {
+			onFileSelect?.(files);
 		}
-
-		// Only call onFileSelect when files change (not on initial mount)
-		onFileSelect?.(files);
-	}, [files, onFileSelect]);
+	}, [internalFiles, onFileSelect, externalFiles]);
 
 	const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+		e.preventDefault();
 		const selectedFiles = Array.from(e.target.files || []);
 		if (selectedFiles.length > 0) {
 			handleFilesSelect(selectedFiles);
+		}
+		// Reset the input value to allow selecting the same files again
+		if (fileInputRef.current) {
+			fileInputRef.current.value = '';
 		}
 	};
 
@@ -133,14 +163,25 @@ export default function UploadComponent({
 	};
 
 	const handleRemove = (indexToRemove: number) => {
-		setFiles((prev) => {
-			return prev.filter((_, index) => index !== indexToRemove);
-		});
+		if (externalFiles !== undefined) {
+			const newFiles = externalFiles.filter(
+				(_, index) => index !== indexToRemove,
+			);
+			onFileSelect?.(newFiles);
+		} else {
+			setInternalFiles((prev) => {
+				return prev.filter((_, index) => index !== indexToRemove);
+			});
+		}
 		setError(null);
 	};
 
 	const handleRemoveAll = () => {
-		setFiles([]);
+		if (externalFiles !== undefined) {
+			onFileSelect?.([]);
+		} else {
+			setInternalFiles([]);
+		}
 		setError(null);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = '';
