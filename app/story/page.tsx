@@ -21,7 +21,17 @@ import {
 	Loader2,
 	GitCompare,
 	Eye,
+	BookOpen,
 } from 'lucide-react';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type { ExtractedTextData, CombinedTextData } from '@/lib/text-extractor';
@@ -44,6 +54,25 @@ export default function Story() {
 	const [showDiff, setShowDiff] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const [elapsedTime, setElapsedTime] = useState(0);
+
+	// Story creation state
+	const [storytone, setStorytone] = useState<
+		| 'dark'
+		| 'humorous'
+		| 'poetic'
+		| 'epic'
+		| 'adventure'
+		| 'mystery'
+		| 'slice-of-life'
+	>('humorous');
+	const [ageMode, setAgeMode] = useState<'children' | 'ya' | 'adult'>('ya');
+	const [storyResult, setStoryResult] = useState<{
+		story: string;
+		characters: string;
+		scenes: string;
+	} | null>(null);
+	const [isCreatingStory, setIsCreatingStory] = useState(false);
+	const [storyError, setStoryError] = useState<string | null>(null);
 	const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 	const startTimeRef = useRef<number | null>(null);
 
@@ -436,6 +465,57 @@ export default function Story() {
 		}
 	};
 
+	const handleCreateStory = async () => {
+		if (!combinedData?.combinedText) {
+			setStoryError(
+				'No combined text available. Please extract text first.',
+			);
+			return;
+		}
+
+		setIsCreatingStory(true);
+		setStoryError(null);
+		setStoryResult(null);
+		setProgress(0);
+		startTimeRef.current = Date.now();
+
+		// Simulate progress during story creation
+		const storyProgressInterval = setInterval(() => {
+			setProgress((prev) => {
+				if (prev < 95) {
+					return Math.min(prev + 1.5, 95);
+				}
+				return prev;
+			});
+		}, 500);
+
+		try {
+			const formData = new FormData();
+			formData.append('lessonContent', combinedData.combinedText);
+			formData.append('storytone', storytone);
+			formData.append('ageMode', ageMode);
+			if (combinedData.totalDocuments) {
+				formData.append(
+					'lessonTitle',
+					`Lesson from ${combinedData.totalDocuments} document${combinedData.totalDocuments !== 1 ? 's' : ''}`,
+				);
+			}
+
+			const { createStory } = await import('./action');
+			const result = await createStory(formData);
+			clearInterval(storyProgressInterval);
+			setProgress(100);
+			setStoryResult(result);
+		} catch (err) {
+			clearInterval(storyProgressInterval);
+			setStoryError(
+				err instanceof Error ? err.message : 'Failed to create story',
+			);
+		} finally {
+			setIsCreatingStory(false);
+		}
+	};
+
 	return (
 		<div className="min-h-screen w-full book-page">
 			<Navbar />
@@ -598,40 +678,191 @@ export default function Story() {
 				</div>
 			</section>
 
-			{/* Enhanced Text Section */}
-			{enhancedText && (
+			{/* Story Creation Section */}
+			{combinedData && !storyResult && (
+				<section className="border-t border-stone-200/40 py-4 md:py-6">
+					<div className="container mx-auto px-4">
+						<div className="mx-auto max-w-6xl">
+							<Card className="book-shadow border-stone-200/50 bg-white/95">
+								<CardHeader>
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
+										<BookOpen className="size-6 text-stone-700" />
+									</div>
+									<CardTitle
+										className="font-serif text-stone-900"
+										style={{
+											fontFamily: 'var(--font-playfair)',
+										}}
+									>
+										Create Your Story
+									</CardTitle>
+									<CardDescription
+										className="text-stone-600"
+										style={{
+											fontFamily: 'var(--font-crimson)',
+										}}
+									>
+										Transform your lesson into an engaging
+										story using our multi-agent workflow
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-6">
+									{/* Storytone Selector */}
+									<div className="space-y-2">
+										<Label
+											htmlFor="storytone"
+											className="text-stone-700 font-medium"
+										>
+											Storytone
+										</Label>
+										<Select
+											value={storytone}
+											onValueChange={(value) =>
+												setStorytone(
+													value as typeof storytone,
+												)
+											}
+											disabled={isCreatingStory}
+										>
+											<SelectTrigger
+												id="storytone"
+												className="w-full"
+											>
+												<SelectValue placeholder="Select a storytone" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="dark">
+													Dark
+												</SelectItem>
+												<SelectItem value="humorous">
+													Humorous
+												</SelectItem>
+												<SelectItem value="poetic">
+													Poetic
+												</SelectItem>
+												<SelectItem value="epic">
+													Epic
+												</SelectItem>
+												<SelectItem value="adventure">
+													Adventure
+												</SelectItem>
+												<SelectItem value="mystery">
+													Mystery
+												</SelectItem>
+												<SelectItem value="slice-of-life">
+													Slice of Life
+												</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+
+									{/* Age Mode Selector */}
+									<div className="space-y-2">
+										<Label
+											htmlFor="ageMode"
+											className="text-stone-700 font-medium"
+										>
+											Age Mode
+										</Label>
+										<Select
+											value={ageMode}
+											onValueChange={(value) =>
+												setAgeMode(
+													value as typeof ageMode,
+												)
+											}
+											disabled={isCreatingStory}
+										>
+											<SelectTrigger
+												id="ageMode"
+												className="w-full"
+											>
+												<SelectValue placeholder="Select age mode" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="children">
+													Children
+												</SelectItem>
+												<SelectItem value="ya">
+													Young Adult (YA)
+												</SelectItem>
+												<SelectItem value="adult">
+													Adult
+												</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+
+									{/* Create Story Button */}
+									{isCreatingStory ? (
+										<div className="space-y-3">
+											<div className="space-y-2">
+												<div className="flex items-center justify-between text-sm">
+													<span className="font-medium text-stone-700">
+														Creating story...
+														(Lesson → Characters →
+														Scene → Story)
+													</span>
+													<span className="text-stone-500">
+														{progress}%
+													</span>
+												</div>
+												<Progress
+													value={progress}
+													className="h-3 bg-stone-200"
+												/>
+											</div>
+											<div className="flex items-center justify-center gap-2 text-sm text-stone-500">
+												<Loader2 className="size-4 animate-spin" />
+												<span>
+													{Math.floor(
+														elapsedTime / 60,
+													)}
+													:
+													{String(
+														elapsedTime % 60,
+													).padStart(2, '0')}
+												</span>
+											</div>
+										</div>
+									) : (
+										<Button
+											onClick={handleCreateStory}
+											disabled={!combinedData}
+											className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
+											size="lg"
+										>
+											<BookOpen className="mr-2 size-4" />
+											Create Story
+										</Button>
+									)}
+
+									{storyError && (
+										<Alert variant="destructive">
+											<AlertTitle>Error</AlertTitle>
+											<AlertDescription>
+												{storyError}
+											</AlertDescription>
+										</Alert>
+									)}
+								</CardContent>
+							</Card>
+						</div>
+					</div>
+				</section>
+			)}
+
+			{/* Combined Story and Enhanced Text Section with Tabs */}
+			{(storyResult || enhancedText) && (
 				<section className="border-t border-stone-200/40 py-4 md:py-6">
 					<div className="container mx-auto px-4">
 						<div className="mx-auto max-w-6xl">
 							<div className="mb-4 text-center">
 								<div className="mb-2 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-stone-50/80 backdrop-blur-sm px-5 py-2 text-sm">
-									<Sparkles className="size-4 text-stone-600" />
+									<BookOpen className="size-4 text-stone-600" />
 									<span className="text-stone-700 font-medium">
-										Enhanced Lesson
+										Your Content
 									</span>
-								</div>
-								<div className="mb-2 flex items-center justify-center gap-4">
-									<Button
-										ref={viewDiffButtonRef}
-										onClick={() => setShowDiff(!showDiff)}
-										variant={
-											showDiff ? 'default' : 'outline'
-										}
-										className="gap-2 relative overflow-visible"
-										size="sm"
-									>
-										{showDiff ? (
-											<>
-												<Eye className="size-4" />
-												View Enhanced
-											</>
-										) : (
-											<>
-												<GitCompare className="size-4" />
-												View Diff
-											</>
-										)}
-									</Button>
 								</div>
 								<p
 									className="text-sm text-stone-500"
@@ -639,140 +870,609 @@ export default function Story() {
 										fontFamily: 'var(--font-crimson)',
 									}}
 								>
-									Enhanced: {new Date().toLocaleString()}
+									{storyResult
+										? `Story created: ${new Date().toLocaleString()}`
+										: enhancedText
+											? `Enhanced: ${new Date().toLocaleString()}`
+											: ''}
 								</p>
 							</div>
-							<div ref={enhancedRef}>
-								{showDiff && combinedData ? (
-									<TextDiffView
-										original={combinedData.combinedText}
-										enhanced={enhancedText}
-										title="Before / After Enhancement"
-									/>
-								) : (
-									/* Book Page Container */
-									<div className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden">
-										{/* Book binding decoration */}
-										<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
-										<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
 
-										{/* Page number */}
-										<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
-											1
-										</div>
+							{/* Tabs for switching between Story and Enhanced Lesson */}
+							{storyResult && enhancedText ? (
+								<Tabs defaultValue="story" className="w-full">
+									<TabsList className="mb-6 w-full justify-start bg-stone-100/50 border border-stone-200/50">
+										<TabsTrigger
+											value="story"
+											className="data-[state=active]:bg-white data-[state=active]:text-stone-900 data-[state=active]:shadow-sm"
+										>
+											<BookOpen className="mr-2 size-4" />
+											Story
+										</TabsTrigger>
+										<TabsTrigger
+											value="enhanced"
+											className="data-[state=active]:bg-white data-[state=active]:text-stone-900 data-[state=active]:shadow-sm"
+										>
+											<Sparkles className="mr-2 size-4" />
+											Enhanced Lesson
+										</TabsTrigger>
+									</TabsList>
 
-										{/* Book page content */}
-										<div className="px-8 md:px-12 py-10 md:py-16">
-											{/* Left margin line (like a notebook) */}
-											<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+									<TabsContent value="story" className="mt-0">
+										<div
+											ref={enhancedRef}
+											className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden"
+										>
+											{/* Book binding decoration */}
+											<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+											<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
 
-											{/* Main content area with book-like typography */}
-											<div
-												className="prose prose-stone max-w-none book-content"
-												style={{
-													fontFamily:
-														'var(--font-crimson)',
-												}}
-											>
+											{/* Page number */}
+											<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+												1
+											</div>
+
+											{/* Book page content */}
+											<div className="px-8 md:px-12 py-10 md:py-16">
+												{/* Left margin line (like a notebook) */}
+												<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+
+												{/* Main content area with book-like typography */}
 												<div
-													className="text-stone-800 leading-relaxed text-base md:text-lg"
+													className="prose prose-stone max-w-none book-content"
 													style={{
 														fontFamily:
 															'var(--font-crimson)',
 													}}
 												>
-													{enhancedText
-														.split('\n')
-														.map((line, index) => {
-															// Remove all markdown characters
-															let cleanLine = line
-																// Remove heading markers
-																.replace(
-																	/^#+\s*/g,
-																	'',
-																)
-																// Remove bold markers
-																.replace(
-																	/\*\*/g,
-																	'',
-																)
-																// Remove italic markers (but be careful not to remove asterisks in content)
-																.replace(
-																	/\*([^*]+)\*/g,
-																	'$1',
-																)
-																// Remove list markers
-																.replace(
-																	/^[-*]\s+/g,
-																	'',
-																)
-																.replace(
-																	/^\d+\.\s+/g,
-																	'',
-																)
-																// Remove code blocks
-																.replace(
-																	/```[\s\S]*?```/g,
-																	'',
-																)
-																.replace(
-																	/`([^`]+)`/g,
-																	'$1',
-																)
-																// Remove links [text](url)
-																.replace(
-																	/\[([^\]]+)\]\([^\)]+\)/g,
-																	'$1',
-																)
-																// Remove images ![alt](url)
-																.replace(
-																	/!\[([^\]]*)\]\([^\)]+\)/g,
-																	'',
-																)
-																// Remove horizontal rules
-																.replace(
-																	/^[-*_]{3,}$/g,
-																	'',
-																)
-																// Remove blockquotes
-																.replace(
-																	/^>\s*/g,
-																	'',
-																)
-																.trim();
+													<div
+														className="text-stone-800 leading-relaxed text-base md:text-lg"
+														style={{
+															fontFamily:
+																'var(--font-crimson)',
+														}}
+													>
+														{storyResult.story
+															.split('\n')
+															.map(
+																(
+																	line,
+																	index,
+																) => {
+																	// Remove all markdown characters
+																	let cleanLine =
+																		line
+																			.replace(
+																				/^#+\s*/g,
+																				'',
+																			)
+																			.replace(
+																				/\*\*/g,
+																				'',
+																			)
+																			.replace(
+																				/\*([^*]+)\*/g,
+																				'$1',
+																			)
+																			.replace(
+																				/^[-*]\s+/g,
+																				'',
+																			)
+																			.replace(
+																				/^\d+\.\s+/g,
+																				'',
+																			)
+																			.replace(
+																				/```[\s\S]*?```/g,
+																				'',
+																			)
+																			.replace(
+																				/`([^`]+)`/g,
+																				'$1',
+																			)
+																			.replace(
+																				/\[([^\]]+)\]\([^\)]+\)/g,
+																				'$1',
+																			)
+																			.replace(
+																				/!\[([^\]]*)\]\([^\)]+\)/g,
+																				'',
+																			)
+																			.replace(
+																				/^[-*_]{3,}$/g,
+																				'',
+																			)
+																			.replace(
+																				/^>\s*/g,
+																				'',
+																			)
+																			.trim();
 
-															// Skip empty lines
-															if (!cleanLine) {
-																return (
-																	<br
-																		key={
-																			index
-																		}
-																	/>
-																);
-															}
+																	if (
+																		!cleanLine
+																	) {
+																		return (
+																			<br
+																				key={
+																					index
+																				}
+																			/>
+																		);
+																	}
 
-															// Display as paragraph
-															return (
-																<p
-																	key={index}
-																	className="mb-4 indent-0 first:indent-0"
-																>
-																	{cleanLine}
-																</p>
-															);
-														})}
+																	return (
+																		<p
+																			key={
+																				index
+																			}
+																			className="mb-4 indent-0 first:indent-0"
+																		>
+																			{
+																				cleanLine
+																			}
+																		</p>
+																	);
+																},
+															)}
+													</div>
 												</div>
 											</div>
-										</div>
 
-										{/* Bottom page number */}
-										<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
-											1
+											{/* Bottom page number */}
+											<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+												1
+											</div>
+										</div>
+									</TabsContent>
+
+									<TabsContent
+										value="enhanced"
+										className="mt-0"
+									>
+										<div ref={enhancedRef}>
+											<div className="mb-4 flex items-center justify-center gap-4">
+												<Button
+													ref={viewDiffButtonRef}
+													onClick={() =>
+														setShowDiff(!showDiff)
+													}
+													variant={
+														showDiff
+															? 'default'
+															: 'outline'
+													}
+													className="gap-2 relative overflow-visible"
+													size="sm"
+												>
+													{showDiff ? (
+														<>
+															<Eye className="size-4" />
+															View Enhanced
+														</>
+													) : (
+														<>
+															<GitCompare className="size-4" />
+															View Diff
+														</>
+													)}
+												</Button>
+											</div>
+											{showDiff &&
+											combinedData &&
+											enhancedText ? (
+												<TextDiffView
+													original={
+														combinedData.combinedText
+													}
+													enhanced={enhancedText}
+													title="Before / After Enhancement"
+												/>
+											) : (
+												/* Book Page Container */
+												<div className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden">
+													{/* Book binding decoration */}
+													<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+													<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+
+													{/* Page number */}
+													<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+														1
+													</div>
+
+													{/* Book page content */}
+													<div className="px-8 md:px-12 py-10 md:py-16">
+														{/* Left margin line (like a notebook) */}
+														<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+
+														{/* Main content area with book-like typography */}
+														<div
+															className="prose prose-stone max-w-none book-content"
+															style={{
+																fontFamily:
+																	'var(--font-crimson)',
+															}}
+														>
+															<div
+																className="text-stone-800 leading-relaxed text-base md:text-lg"
+																style={{
+																	fontFamily:
+																		'var(--font-crimson)',
+																}}
+															>
+																{enhancedText
+																	.split('\n')
+																	.map(
+																		(
+																			line,
+																			index,
+																		) => {
+																			// Remove all markdown characters
+																			let cleanLine =
+																				line
+																					.replace(
+																						/^#+\s*/g,
+																						'',
+																					)
+																					.replace(
+																						/\*\*/g,
+																						'',
+																					)
+																					.replace(
+																						/\*([^*]+)\*/g,
+																						'$1',
+																					)
+																					.replace(
+																						/^[-*]\s+/g,
+																						'',
+																					)
+																					.replace(
+																						/^\d+\.\s+/g,
+																						'',
+																					)
+																					.replace(
+																						/```[\s\S]*?```/g,
+																						'',
+																					)
+																					.replace(
+																						/`([^`]+)`/g,
+																						'$1',
+																					)
+																					.replace(
+																						/\[([^\]]+)\]\([^\)]+\)/g,
+																						'$1',
+																					)
+																					.replace(
+																						/!\[([^\]]*)\]\([^\)]+\)/g,
+																						'',
+																					)
+																					.replace(
+																						/^[-*_]{3,}$/g,
+																						'',
+																					)
+																					.replace(
+																						/^>\s*/g,
+																						'',
+																					)
+																					.trim();
+
+																			// Skip empty lines
+																			if (
+																				!cleanLine
+																			) {
+																				return (
+																					<br
+																						key={
+																							index
+																						}
+																					/>
+																				);
+																			}
+
+																			// Display as paragraph
+																			return (
+																				<p
+																					key={
+																						index
+																					}
+																					className="mb-4 indent-0 first:indent-0"
+																				>
+																					{
+																						cleanLine
+																					}
+																				</p>
+																			);
+																		},
+																	)}
+															</div>
+														</div>
+													</div>
+
+													{/* Bottom page number */}
+													<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+														1
+													</div>
+												</div>
+											)}
+										</div>
+									</TabsContent>
+								</Tabs>
+							) : storyResult ? (
+								// Only story available
+								<div
+									ref={enhancedRef}
+									className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden"
+								>
+									{/* Book binding decoration */}
+									<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+									<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+
+									{/* Page number */}
+									<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+										1
+									</div>
+
+									{/* Book page content */}
+									<div className="px-8 md:px-12 py-10 md:py-16">
+										{/* Left margin line (like a notebook) */}
+										<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+
+										{/* Main content area with book-like typography */}
+										<div
+											className="prose prose-stone max-w-none book-content"
+											style={{
+												fontFamily:
+													'var(--font-crimson)',
+											}}
+										>
+											<div
+												className="text-stone-800 leading-relaxed text-base md:text-lg"
+												style={{
+													fontFamily:
+														'var(--font-crimson)',
+												}}
+											>
+												{storyResult.story
+													.split('\n')
+													.map((line, index) => {
+														// Remove all markdown characters
+														let cleanLine = line
+															.replace(
+																/^#+\s*/g,
+																'',
+															)
+															.replace(
+																/\*\*/g,
+																'',
+															)
+															.replace(
+																/\*([^*]+)\*/g,
+																'$1',
+															)
+															.replace(
+																/^[-*]\s+/g,
+																'',
+															)
+															.replace(
+																/^\d+\.\s+/g,
+																'',
+															)
+															.replace(
+																/```[\s\S]*?```/g,
+																'',
+															)
+															.replace(
+																/`([^`]+)`/g,
+																'$1',
+															)
+															.replace(
+																/\[([^\]]+)\]\([^\)]+\)/g,
+																'$1',
+															)
+															.replace(
+																/!\[([^\]]*)\]\([^\)]+\)/g,
+																'',
+															)
+															.replace(
+																/^[-*_]{3,}$/g,
+																'',
+															)
+															.replace(
+																/^>\s*/g,
+																'',
+															)
+															.trim();
+
+														if (!cleanLine) {
+															return (
+																<br
+																	key={index}
+																/>
+															);
+														}
+
+														return (
+															<p
+																key={index}
+																className="mb-4 indent-0 first:indent-0"
+															>
+																{cleanLine}
+															</p>
+														);
+													})}
+											</div>
 										</div>
 									</div>
-								)}
-							</div>
+
+									{/* Bottom page number */}
+									<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+										1
+									</div>
+								</div>
+							) : (
+								// Only enhanced text available
+								<div ref={enhancedRef}>
+									<div className="mb-2 flex items-center justify-center gap-4">
+										<Button
+											ref={viewDiffButtonRef}
+											onClick={() =>
+												setShowDiff(!showDiff)
+											}
+											variant={
+												showDiff ? 'default' : 'outline'
+											}
+											className="gap-2 relative overflow-visible"
+											size="sm"
+										>
+											{showDiff ? (
+												<>
+													<Eye className="size-4" />
+													View Enhanced
+												</>
+											) : (
+												<>
+													<GitCompare className="size-4" />
+													View Diff
+												</>
+											)}
+										</Button>
+									</div>
+									{showDiff &&
+									combinedData &&
+									enhancedText ? (
+										<TextDiffView
+											original={combinedData.combinedText}
+											enhanced={enhancedText}
+											title="Before / After Enhancement"
+										/>
+									) : (
+										/* Book Page Container */
+										<div className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden">
+											{/* Book binding decoration */}
+											<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+											<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+
+											{/* Page number */}
+											<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+												1
+											</div>
+
+											{/* Book page content */}
+											<div className="px-8 md:px-12 py-10 md:py-16">
+												{/* Left margin line (like a notebook) */}
+												<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+
+												{/* Main content area with book-like typography */}
+												<div
+													className="prose prose-stone max-w-none book-content"
+													style={{
+														fontFamily:
+															'var(--font-crimson)',
+													}}
+												>
+													<div
+														className="text-stone-800 leading-relaxed text-base md:text-lg"
+														style={{
+															fontFamily:
+																'var(--font-crimson)',
+														}}
+													>
+														{enhancedText &&
+															enhancedText
+																.split('\n')
+																.map(
+																	(
+																		line,
+																		index,
+																	) => {
+																		// Remove all markdown characters
+																		let cleanLine =
+																			line
+																				.replace(
+																					/^#+\s*/g,
+																					'',
+																				)
+																				.replace(
+																					/\*\*/g,
+																					'',
+																				)
+																				.replace(
+																					/\*([^*]+)\*/g,
+																					'$1',
+																				)
+																				.replace(
+																					/^[-*]\s+/g,
+																					'',
+																				)
+																				.replace(
+																					/^\d+\.\s+/g,
+																					'',
+																				)
+																				.replace(
+																					/```[\s\S]*?```/g,
+																					'',
+																				)
+																				.replace(
+																					/`([^`]+)`/g,
+																					'$1',
+																				)
+																				.replace(
+																					/\[([^\]]+)\]\([^\)]+\)/g,
+																					'$1',
+																				)
+																				.replace(
+																					/!\[([^\]]*)\]\([^\)]+\)/g,
+																					'',
+																				)
+																				.replace(
+																					/^[-*_]{3,}$/g,
+																					'',
+																				)
+																				.replace(
+																					/^>\s*/g,
+																					'',
+																				)
+																				.trim();
+
+																		// Skip empty lines
+																		if (
+																			!cleanLine
+																		) {
+																			return (
+																				<br
+																					key={
+																						index
+																					}
+																				/>
+																			);
+																		}
+
+																		// Display as paragraph
+																		return (
+																			<p
+																				key={
+																					index
+																				}
+																				className="mb-4 indent-0 first:indent-0"
+																			>
+																				{
+																					cleanLine
+																				}
+																			</p>
+																		);
+																	},
+																)}
+													</div>
+												</div>
+											</div>
+
+											{/* Bottom page number */}
+											<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+												1
+											</div>
+										</div>
+									)}
+								</div>
+							)}
 						</div>
 					</div>
 				</section>
