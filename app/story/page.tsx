@@ -18,7 +18,6 @@ import {
 	Sparkles,
 	CheckCircle2,
 	Loader2,
-	BookOpen,
 	GitCompare,
 	Eye,
 } from 'lucide-react';
@@ -46,7 +45,6 @@ export default function Story() {
 	// Refs for animations and scrolling
 	const heroRef = useRef<HTMLDivElement>(null);
 	const uploadRef = useRef<HTMLDivElement>(null);
-	const combinedRef = useRef<HTMLDivElement>(null);
 	const enhancedRef = useRef<HTMLDivElement>(null);
 	const viewDiffButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -79,21 +77,6 @@ export default function Story() {
 				});
 			}
 
-			// Combined data animation
-			if (combinedRef.current) {
-				gsap.from(combinedRef.current, {
-					opacity: 0,
-					y: 50,
-					rotationX: 10,
-					duration: 0.8,
-					ease: 'power3.out',
-					scrollTrigger: {
-						trigger: combinedRef.current,
-						start: 'top 85%',
-					},
-				});
-			}
-
 			// Enhanced text animation
 			if (enhancedRef.current) {
 				gsap.from(enhancedRef.current, {
@@ -111,20 +94,9 @@ export default function Story() {
 		});
 
 		return () => ctx.revert();
-	}, [combinedData, enhancedText]);
+	}, [enhancedText]);
 
-	// Auto-scroll to sections when they appear
-	useEffect(() => {
-		if (combinedData && combinedRef.current) {
-			setTimeout(() => {
-				combinedRef.current?.scrollIntoView({
-					behavior: 'smooth',
-					block: 'start',
-				});
-			}, 100);
-		}
-	}, [combinedData]);
-
+	// Auto-scroll to enhanced text when it's ready
 	useEffect(() => {
 		if (enhancedText && enhancedRef.current) {
 			setTimeout(() => {
@@ -221,6 +193,7 @@ export default function Story() {
 		setIsExtracting(true);
 		setError(null);
 		setSuccess(false);
+		setEnhanceError(null);
 
 		try {
 			const formData = new FormData();
@@ -240,10 +213,45 @@ export default function Story() {
 
 			const result = await response.json();
 			setExtractedData(result.data);
+
 			if (result.combined) {
 				setCombinedData(result.combined);
+
+				// Automatically enhance the text after extraction
+				setIsEnhancing(true);
+				setEnhancedText(null);
+
+				try {
+					const enhanceFormData = new FormData();
+					enhanceFormData.append(
+						'lessonContent',
+						result.combined.combinedText,
+					);
+					if (result.combined.totalDocuments) {
+						enhanceFormData.append(
+							'lessonTitle',
+							`Lesson from ${result.combined.totalDocuments} document${result.combined.totalDocuments !== 1 ? 's' : ''}`,
+						);
+					}
+
+					const { enhanceLesson } = await import('./action');
+					const enhanced = await enhanceLesson(enhanceFormData);
+					setEnhancedText(enhanced);
+					setSuccess(true);
+				} catch (enhanceErr) {
+					setEnhanceError(
+						enhanceErr instanceof Error
+							? enhanceErr.message
+							: 'Failed to enhance lesson',
+					);
+					// Still show success for extraction even if enhancement fails
+					setSuccess(true);
+				} finally {
+					setIsEnhancing(false);
+				}
+			} else {
+				setSuccess(true);
 			}
-			setSuccess(true);
 		} catch (err) {
 			setError(
 				err instanceof Error ? err.message : 'Failed to extract text',
@@ -368,7 +376,9 @@ export default function Story() {
 										<div className="mt-6 space-y-4">
 											<Button
 												onClick={handleExtractText}
-												disabled={isExtracting}
+												disabled={
+													isExtracting || isEnhancing
+												}
 												className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
 												size="lg"
 											>
@@ -377,10 +387,15 @@ export default function Story() {
 														<Loader2 className="mr-2 size-4 animate-spin" />
 														Extracting text...
 													</>
+												) : isEnhancing ? (
+													<>
+														<Loader2 className="mr-2 size-4 animate-spin" />
+														Enhancing lesson...
+													</>
 												) : (
 													<>
-														<FileText className="mr-2 size-4" />
-														Extract Text from{' '}
+														<Sparkles className="mr-2 size-4" />
+														Extract & Enhance from{' '}
 														{files.length} File
 														{files.length !== 1
 															? 's'
@@ -408,18 +423,9 @@ export default function Story() {
 															Success!
 														</AlertTitle>
 														<AlertDescription className="text-green-800">
-															Successfully
-															extracted text from{' '}
-															{
-																extractedData.length
-															}{' '}
-															file
-															{extractedData.length !==
-															1
-																? 's'
-																: ''}
-															. The extracted data
-															is available below.
+															{enhancedText
+																? `Successfully extracted and enhanced text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. The enhanced lesson is available below.`
+																: `Successfully extracted text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. ${enhanceError ? 'Enhancement failed, but you can try manually below.' : 'The extracted data is available below.'}`}
 														</AlertDescription>
 													</Alert>
 												)}
@@ -431,93 +437,6 @@ export default function Story() {
 					</div>
 				</div>
 			</section>
-
-			{/* Combined Text Section */}
-			{combinedData && (
-				<section className="py-12 md:py-16">
-					<div className="container mx-auto px-4">
-						<div className="mx-auto max-w-4xl">
-							<div className="mb-4 text-right text-stone-400/50 font-serif text-xs tracking-wider">
-								2
-							</div>
-							<div ref={combinedRef}>
-								<Card className="book-shadow border-stone-200/50 bg-white/95">
-									<CardHeader>
-										<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
-											<BookOpen className="size-6 text-stone-700" />
-										</div>
-										<CardTitle
-											className="font-serif text-stone-900"
-											style={{
-												fontFamily:
-													'var(--font-playfair)',
-											}}
-										>
-											Combined Lesson Content
-										</CardTitle>
-										<CardDescription
-											className="text-stone-600"
-											style={{
-												fontFamily:
-													'var(--font-crimson)',
-											}}
-										>
-											Total Documents:{' '}
-											{combinedData.totalDocuments} •
-											Total Characters:{' '}
-											{combinedData.totalCharacters.toLocaleString()}{' '}
-											• Combined:{' '}
-											{new Date(
-												combinedData.combinedAt,
-											).toLocaleString()}
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-4">
-										<details className="mt-2" open>
-											<summary className="cursor-pointer text-sm font-medium text-stone-700 hover:text-stone-900 mb-2">
-												View Combined Text
-											</summary>
-											<div className="mt-3 p-4 bg-stone-50/50 border border-stone-200/50 rounded text-sm overflow-auto max-h-96 whitespace-pre-wrap leading-relaxed">
-												{combinedData.combinedText}
-											</div>
-										</details>
-
-										<Button
-											onClick={handleEnhanceLesson}
-											disabled={isEnhancing}
-											className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
-											size="lg"
-										>
-											{isEnhancing ? (
-												<>
-													<Loader2 className="mr-2 size-4 animate-spin" />
-													Enhancing lesson...
-												</>
-											) : (
-												<>
-													<Sparkles className="mr-2 size-4" />
-													Enhance Lesson with AI
-												</>
-											)}
-										</Button>
-
-										{enhanceError && (
-											<Alert variant="destructive">
-												<AlertTitle>
-													Enhancement Error
-												</AlertTitle>
-												<AlertDescription>
-													{enhanceError}
-												</AlertDescription>
-											</Alert>
-										)}
-									</CardContent>
-								</Card>
-							</div>
-						</div>
-					</div>
-				</section>
-			)}
 
 			{/* Enhanced Text Section */}
 			{enhancedText && (
