@@ -234,6 +234,18 @@ export default function Story() {
 			return;
 		}
 
+		// Check total file size (serverless functions typically have a 4.5MB limit)
+		const MAX_TOTAL_SIZE_MB = 4.5;
+		const totalSizeMB =
+			files.reduce((sum, file) => sum + file.size, 0) / (1024 * 1024);
+
+		if (totalSizeMB > MAX_TOTAL_SIZE_MB) {
+			setError(
+				`Total file size (${totalSizeMB.toFixed(2)}MB) exceeds the maximum allowed size of ${MAX_TOTAL_SIZE_MB}MB. Please select smaller files or process them one at a time.`,
+			);
+			return;
+		}
+
 		setIsExtracting(true);
 		setError(null);
 		setSuccess(false);
@@ -270,20 +282,37 @@ export default function Story() {
 
 			if (!response.ok) {
 				let errorMessage = 'Failed to extract text';
-				try {
-					if (contentType.includes('application/json')) {
-						const errorData = await response.json();
-						errorMessage =
-							errorData.message ||
-							errorData.error ||
-							errorMessage;
-					} else {
-						const text = await response.text();
-						errorMessage = text || errorMessage;
+
+				// Handle specific status codes
+				if (response.status === 413 || response.status === 429) {
+					errorMessage =
+						'File size too large. The total size of your files exceeds the server limit. Please try uploading smaller files or process them one at a time.';
+				} else {
+					try {
+						if (contentType.includes('application/json')) {
+							const errorData = await response.json();
+							errorMessage =
+								errorData.message ||
+								errorData.error ||
+								errorMessage;
+						} else {
+							const text = await response.text();
+							// Check for common payload too large errors
+							if (
+								text.includes('Request Entity Too Large') ||
+								text.includes('FUNCTION_PAYLOAD_TOO_LARGE') ||
+								text.includes('Payload Too Large')
+							) {
+								errorMessage =
+									'File size too large. The total size of your files exceeds the server limit. Please try uploading smaller files or process them one at a time.';
+							} else {
+								errorMessage = text || errorMessage;
+							}
+						}
+					} catch (parseError) {
+						// If we can't parse the error, use the status text
+						errorMessage = response.statusText || errorMessage;
 					}
-				} catch (parseError) {
-					// If we can't parse the error, use the status text
-					errorMessage = response.statusText || errorMessage;
 				}
 				throw new Error(errorMessage);
 			}
