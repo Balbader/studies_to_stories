@@ -9,14 +9,33 @@ if (!process.env.ANTHROPIC_API_KEY) {
 	);
 }
 
-export const mastra = new Mastra({
-	agents: { lessonEnhancerAgent },
-	logger: new PinoLogger({
-		name: 'Mastra',
-		level: 'info',
-	}),
-	observability: {
-		// Enables DefaultExporter and CloudExporter for AI tracing
-		default: { enabled: true },
-	},
-});
+// Singleton pattern to prevent multiple initializations (important for Next.js hot reloading)
+let mastraInstance: Mastra | null = null;
+
+function getMastraInstance(): Mastra {
+	if (!mastraInstance) {
+		// Disable observability in development to avoid "already registered" errors during hot reloading
+		// Enable it in production for better monitoring
+		const isDevelopment = process.env.NODE_ENV === 'development';
+
+		mastraInstance = new Mastra({
+			agents: { lessonEnhancerAgent },
+			logger: new PinoLogger({
+				name: 'Mastra',
+				level: 'info',
+			}),
+			// Only enable observability in production to avoid hot reload conflicts
+			...(isDevelopment
+				? {}
+				: {
+						observability: {
+							default: { enabled: true },
+						},
+					}),
+		});
+	}
+	return mastraInstance;
+}
+
+// Use a getter function instead of direct export to handle hot reloading better
+export const mastra = getMastraInstance();

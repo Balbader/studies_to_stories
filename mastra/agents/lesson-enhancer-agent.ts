@@ -20,7 +20,7 @@ export const lessonEnhancerAgent = new Agent({
 	`,
 
 	// Use a real model that is available in the ai-sdk/Mastra provider
-	model: 'anthropic/claude-3-5-sonnet',
+	model: 'anthropic/claude-haiku-4-5',
 
 	tools: { textExtractorTool },
 });
