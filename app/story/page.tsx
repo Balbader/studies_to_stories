@@ -54,6 +54,7 @@ export default function Story() {
 	const [showDiff, setShowDiff] = useState(false);
 	const [progress, setProgress] = useState(0);
 	const [elapsedTime, setElapsedTime] = useState(0);
+	const [processStatus, setProcessStatus] = useState<string>('');
 
 	// Story creation state
 	const [storytone, setStorytone] = useState<
@@ -256,6 +257,8 @@ export default function Story() {
 			setShowDiff(false);
 			setStoryResult(null);
 			setStoryError(null);
+			setProcessStatus('');
+			setProgress(0);
 		}
 	}, []);
 
@@ -281,7 +284,8 @@ export default function Story() {
 		setError(null);
 		setSuccess(false);
 		setEnhanceError(null);
-		setProgress(5); // Start with small progress
+		setProgress(0);
+		setProcessStatus('Initializing...');
 		setElapsedTime(0);
 		startTimeRef.current = Date.now();
 
@@ -291,22 +295,28 @@ export default function Story() {
 				formData.append('files', file);
 			});
 
-			// Simulate progress during extraction
+			// Simulate progress during extraction with detailed status
+			setProcessStatus('Uploading files...');
 			const progressInterval = setInterval(() => {
 				setProgress((prev) => {
-					if (prev < 45) {
-						return Math.min(prev + 2, 45);
+					if (prev < 10) {
+						return Math.min(prev + 0.5, 10);
+					} else if (prev < 45) {
+						return Math.min(prev + 0.8, 45);
 					}
 					return prev;
 				});
-			}, 500);
+			}, 800); // Slower interval
 
+			setProcessStatus('Extracting text from documents...');
 			const response = await fetch('/api/extract-text', {
 				method: 'POST',
 				body: formData,
 			});
 
 			clearInterval(progressInterval);
+			setProgress(45);
+			setProcessStatus('Text extraction complete ✓');
 
 			// Get content type once before reading body
 			const contentType = response.headers.get('content-type') || '';
@@ -371,24 +381,28 @@ export default function Story() {
 			}
 
 			setExtractedData(result.data);
-			setProgress(50); // Extraction complete
+			setProgress(50);
+			setProcessStatus('Combining extracted text...');
 
 			if (result.combined) {
 				setCombinedData(result.combined);
+				setProgress(52);
+				setProcessStatus('Text combined ✓');
 
 				// Automatically enhance the text after extraction
 				setIsEnhancing(true);
 				setEnhancedText(null);
+				setProcessStatus('Enhancing lesson content...');
 
-				// Simulate progress during enhancement
+				// Simulate progress during enhancement (slower)
 				const enhanceProgressInterval = setInterval(() => {
 					setProgress((prev) => {
-						if (prev < 95) {
-							return Math.min(prev + 1.5, 95);
+						if (prev < 58) {
+							return Math.min(prev + 0.6, 58);
 						}
 						return prev;
 					});
-				}, 500);
+				}, 1000); // Slower interval
 
 				try {
 					const enhanceFormData = new FormData();
@@ -410,22 +424,44 @@ export default function Story() {
 					// Enhance the lesson
 					const enhanced = await enhanceLesson(enhanceFormData);
 					clearInterval(enhanceProgressInterval);
-					setProgress(60); // Enhancement complete
+					setProgress(60);
+					setProcessStatus('Lesson enhancement complete ✓');
 					setEnhancedText(enhanced);
 
 					// Create the story
 					setIsCreatingStory(true);
 					setStoryError(null);
 					setStoryResult(null);
+					setProcessStatus('Creating characters from lesson...');
 
+					let lastStatusUpdate = 60;
 					const storyProgressInterval = setInterval(() => {
 						setProgress((prev) => {
+							// Characters phase (60-65%)
+							if (prev < 65) {
+								return Math.min(prev + 0.5, 65);
+							}
+							// Scenes phase (65-85%)
+							if (prev < 85) {
+								if (prev >= 65 && lastStatusUpdate < 65) {
+									setProcessStatus(
+										'Creating scenes from characters...',
+									);
+									lastStatusUpdate = 65;
+								}
+								return Math.min(prev + 0.6, 85);
+							}
+							// Story phase (85-95%)
 							if (prev < 95) {
-								return Math.min(prev + 1.5, 95);
+								if (prev >= 85 && lastStatusUpdate < 85) {
+									setProcessStatus('Weaving final story...');
+									lastStatusUpdate = 85;
+								}
+								return Math.min(prev + 0.5, 95);
 							}
 							return prev;
 						});
-					}, 500);
+					}, 1200); // Slower interval
 
 					try {
 						const storyFormData = new FormData();
@@ -444,11 +480,13 @@ export default function Story() {
 
 						const storyResult = await createStory(storyFormData);
 						clearInterval(storyProgressInterval);
-						setProgress(100); // Complete
+						setProgress(100);
+						setProcessStatus('Story creation complete ✓');
 						setStoryResult(storyResult);
 						setSuccess(true);
 					} catch (storyErr) {
 						clearInterval(storyProgressInterval);
+						setProcessStatus('Story creation failed');
 						setStoryError(
 							storyErr instanceof Error
 								? storyErr.message
@@ -461,6 +499,7 @@ export default function Story() {
 					}
 				} catch (enhanceErr) {
 					clearInterval(enhanceProgressInterval);
+					setProcessStatus('Enhancement failed');
 					setEnhanceError(
 						enhanceErr instanceof Error
 							? enhanceErr.message
@@ -472,9 +511,11 @@ export default function Story() {
 					setIsEnhancing(false);
 				}
 			} else {
+				setProcessStatus('Extraction complete');
 				setSuccess(true);
 			}
 		} catch (err) {
+			setProcessStatus('Extraction failed');
 			setError(
 				err instanceof Error ? err.message : 'Failed to extract text',
 			);
@@ -769,16 +810,20 @@ export default function Story() {
 													<div className="space-y-2">
 														<div className="flex items-center justify-between text-sm">
 															<span className="font-medium text-stone-700">
-																{isExtracting
-																	? 'Extracting text...'
-																	: isEnhancing
-																		? 'Enhancing lesson...'
-																		: isCreatingStory
-																			? 'Creating story... (Lesson → Characters → Scene → Story)'
-																			: 'Processing...'}
+																{processStatus ||
+																	(isExtracting
+																		? 'Extracting text...'
+																		: isEnhancing
+																			? 'Enhancing lesson...'
+																			: isCreatingStory
+																				? 'Creating story...'
+																				: 'Processing...')}
 															</span>
 															<span className="text-stone-500">
-																{progress}%
+																{Math.round(
+																	progress,
+																)}
+																%
 															</span>
 														</div>
 														<Progress
