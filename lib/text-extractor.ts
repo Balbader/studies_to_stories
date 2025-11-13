@@ -1,10 +1,12 @@
+// Import polyfills FIRST before any pdf-parse imports
+import './pdf-polyfills';
+
 import { PDFParse } from 'pdf-parse';
 import mammoth from 'mammoth';
 import path from 'path';
 
 // Configure PDF.js worker for Node.js environment
 if (typeof window === 'undefined') {
-	// Server-side: set worker path to the actual file location
 	const workerPath = path.join(
 		process.cwd(),
 		'node_modules',

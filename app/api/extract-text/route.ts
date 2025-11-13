@@ -1,3 +1,6 @@
+// Import polyfills FIRST before any pdf-parse related imports
+import '@/lib/pdf-polyfills';
+
 import { NextRequest, NextResponse } from 'next/server';
 import {
 	extractTextFromDocuments,
