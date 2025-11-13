@@ -295,18 +295,22 @@ export default function Story() {
 				formData.append('files', file);
 			});
 
-			// Simulate progress during extraction with detailed status
+			// Simulate progress during extraction with detailed status (much slower)
 			setProcessStatus('Uploading files...');
 			const progressInterval = setInterval(() => {
 				setProgress((prev) => {
 					if (prev < 10) {
-						return Math.min(prev + 0.5, 10);
+						return Math.min(prev + 0.2, 10);
+					} else if (prev < 20) {
+						return Math.min(prev + 0.3, 20);
+					} else if (prev < 35) {
+						return Math.min(prev + 0.4, 35);
 					} else if (prev < 45) {
-						return Math.min(prev + 0.8, 45);
+						return Math.min(prev + 0.3, 45);
 					}
 					return prev;
 				});
-			}, 800); // Slower interval
+			}, 1200); // Much slower interval
 
 			setProcessStatus('Extracting text from documents...');
 			const response = await fetch('/api/extract-text', {
@@ -394,15 +398,15 @@ export default function Story() {
 				setEnhancedText(null);
 				setProcessStatus('Enhancing lesson content...');
 
-				// Simulate progress during enhancement (slower)
+				// Simulate progress during enhancement (much slower)
 				const enhanceProgressInterval = setInterval(() => {
 					setProgress((prev) => {
 						if (prev < 58) {
-							return Math.min(prev + 0.6, 58);
+							return Math.min(prev + 0.3, 58);
 						}
 						return prev;
 					});
-				}, 1000); // Slower interval
+				}, 1500); // Much slower interval
 
 				try {
 					const enhanceFormData = new FormData();
@@ -439,7 +443,7 @@ export default function Story() {
 						setProgress((prev) => {
 							// Characters phase (60-65%)
 							if (prev < 65) {
-								return Math.min(prev + 0.5, 65);
+								return Math.min(prev + 0.25, 65);
 							}
 							// Scenes phase (65-85%)
 							if (prev < 85) {
@@ -449,7 +453,7 @@ export default function Story() {
 									);
 									lastStatusUpdate = 65;
 								}
-								return Math.min(prev + 0.6, 85);
+								return Math.min(prev + 0.3, 85);
 							}
 							// Story phase (85-95%)
 							if (prev < 95) {
@@ -457,11 +461,11 @@ export default function Story() {
 									setProcessStatus('Weaving final story...');
 									lastStatusUpdate = 85;
 								}
-								return Math.min(prev + 0.5, 95);
+								return Math.min(prev + 0.25, 95);
 							}
 							return prev;
 						});
-					}, 1200); // Slower interval
+					}, 1800); // Much slower interval
 
 					try {
 						const storyFormData = new FormData();
@@ -1262,7 +1266,46 @@ export default function Story() {
 										value="enhanced"
 										className="mt-0"
 									>
-										<div ref={enhancedRef}>
+										<div
+											ref={enhancedRef}
+											className="relative"
+										>
+											{/* Post-it note when story is still being created */}
+											{isCreatingStory && (
+												<div
+													className="absolute -top-4 right-4 z-10 w-48 transform rotate-2 shadow-lg animate-in fade-in slide-in-from-top-2 duration-500"
+													style={{
+														background:
+															'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+														border: '1px solid #f59e0b',
+														borderRadius: '4px',
+														padding: '12px',
+														fontFamily:
+															'var(--font-crimson)',
+														boxShadow:
+															'0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(245, 158, 11, 0.2)',
+													}}
+												>
+													<div className="text-xs font-semibold text-amber-900 mb-1 flex items-center gap-1">
+														<span>📝</span>
+														<span>Note</span>
+													</div>
+													<div className="text-xs text-amber-800 leading-tight">
+														Your story is being
+														created! It will appear
+														soon in the Story tab.
+													</div>
+													<div
+														className="absolute top-0 right-0 w-0 h-0"
+														style={{
+															borderTop:
+																'8px solid #f59e0b',
+															borderLeft:
+																'8px solid transparent',
+														}}
+													/>
+												</div>
+											)}
 											<div className="mb-4 flex items-center justify-center gap-4">
 												<Button
 													ref={viewDiffButtonRef}
@@ -1543,7 +1586,42 @@ export default function Story() {
 								</div>
 							) : (
 								// Only enhanced text available
-								<div ref={enhancedRef}>
+								<div ref={enhancedRef} className="relative">
+									{/* Post-it note when story is still being created */}
+									{isCreatingStory && (
+										<div
+											className="absolute -top-4 right-4 z-10 w-48 transform rotate-2 shadow-lg animate-in fade-in slide-in-from-top-2 duration-500"
+											style={{
+												background:
+													'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+												border: '1px solid #f59e0b',
+												borderRadius: '4px',
+												padding: '12px',
+												fontFamily:
+													'var(--font-crimson)',
+												boxShadow:
+													'0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(245, 158, 11, 0.2)',
+											}}
+										>
+											<div className="text-xs font-semibold text-amber-900 mb-1 flex items-center gap-1">
+												<span>📝</span>
+												<span>Note</span>
+											</div>
+											<div className="text-xs text-amber-800 leading-tight">
+												Your story is being created! It
+												will appear soon.
+											</div>
+											<div
+												className="absolute top-0 right-0 w-0 h-0"
+												style={{
+													borderTop:
+														'8px solid #f59e0b',
+													borderLeft:
+														'8px solid transparent',
+												}}
+											/>
+										</div>
+									)}
 									<div className="mb-2 flex items-center justify-center gap-4">
 										<Button
 											ref={viewDiffButtonRef}
