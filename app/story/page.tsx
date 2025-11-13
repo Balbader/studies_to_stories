@@ -3,8 +3,11 @@
 import UploadComponent from '@/components/story/UploadComponent';
 
 export default function Story() {
-	const handleFileSelect = (file: File) => {
-		console.log('File selected:', file.name);
+	const handleFileSelect = (files: File[]) => {
+		console.log(
+			'Files selected:',
+			files.map((f) => f.name),
+		);
 		// TODO: Handle file upload/processing here
 	};
 

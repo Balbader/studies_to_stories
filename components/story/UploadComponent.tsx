@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 
 interface UploadComponentProps {
-	onFileSelect?: (file: File) => void;
+	onFileSelect?: (files: File[]) => void;
 	maxSizeMB?: number;
 	className?: string;
 }
@@ -34,7 +34,7 @@ export default function UploadComponent({
 	maxSizeMB = DEFAULT_MAX_SIZE_MB,
 	className,
 }: UploadComponentProps) {
-	const [file, setFile] = useState<File | null>(null);
+	const [files, setFiles] = useState<File[]>([]);
 	const [error, setError] = useState<string | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,24 +58,37 @@ export default function UploadComponent({
 		return null;
 	};
 
-	const handleFileSelect = (selectedFile: File) => {
+	const handleFilesSelect = (selectedFiles: File[]) => {
 		setError(null);
-		const validationError = validateFile(selectedFile);
+		const validFiles: File[] = [];
+		const errors: string[] = [];
 
-		if (validationError) {
-			setError(validationError);
-			setFile(null);
-			return;
+		selectedFiles.forEach((file) => {
+			const validationError = validateFile(file);
+			if (validationError) {
+				errors.push(`${file.name}: ${validationError}`);
+			} else {
+				validFiles.push(file);
+			}
+		});
+
+		if (errors.length > 0) {
+			setError(errors.join('\n'));
 		}
 
-		setFile(selectedFile);
-		onFileSelect?.(selectedFile);
+		if (validFiles.length > 0) {
+			setFiles((prev) => {
+				const newFiles = [...prev, ...validFiles];
+				onFileSelect?.(newFiles);
+				return newFiles;
+			});
+		}
 	};
 
 	const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-		const selectedFile = e.target.files?.[0];
-		if (selectedFile) {
-			handleFileSelect(selectedFile);
+		const selectedFiles = Array.from(e.target.files || []);
+		if (selectedFiles.length > 0) {
+			handleFilesSelect(selectedFiles);
 		}
 	};
 
@@ -96,9 +109,9 @@ export default function UploadComponent({
 		e.stopPropagation();
 		setIsDragging(false);
 
-		const droppedFile = e.dataTransfer.files?.[0];
-		if (droppedFile) {
-			handleFileSelect(droppedFile);
+		const droppedFiles = Array.from(e.dataTransfer.files || []);
+		if (droppedFiles.length > 0) {
+			handleFilesSelect(droppedFiles);
 		}
 	};
 
@@ -106,12 +119,22 @@ export default function UploadComponent({
 		fileInputRef.current?.click();
 	};
 
-	const handleRemove = () => {
-		setFile(null);
+	const handleRemove = (indexToRemove: number) => {
+		setFiles((prev) => {
+			const newFiles = prev.filter((_, index) => index !== indexToRemove);
+			onFileSelect?.(newFiles);
+			return newFiles;
+		});
+		setError(null);
+	};
+
+	const handleRemoveAll = () => {
+		setFiles([]);
 		setError(null);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = '';
 		}
+		onFileSelect?.([]);
 	};
 
 	const formatFileSize = (bytes: number): string => {
@@ -133,10 +156,10 @@ export default function UploadComponent({
 		<div className={cn('w-full', className)}>
 			<Card>
 				<CardHeader>
-					<CardTitle>Upload Document</CardTitle>
+					<CardTitle>Upload Documents</CardTitle>
 					<CardDescription>
-						Upload a PDF or Word document (.pdf, .doc, .docx). Max
-						size: {maxSizeMB}MB
+						Upload one or more PDF or Word documents (.pdf, .doc,
+						.docx). Max size per file: {maxSizeMB}MB
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -147,71 +170,96 @@ export default function UploadComponent({
 						</Alert>
 					)}
 
-					{!file ? (
-						<div
-							onDragOver={handleDragOver}
-							onDragLeave={handleDragLeave}
-							onDrop={handleDrop}
-							onClick={handleClick}
-							className={cn(
-								'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
-								isDragging
-									? 'border-primary bg-primary/5'
-									: 'border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50',
-							)}
-						>
-							<div className="flex flex-col items-center gap-4">
-								<div className="text-4xl">📤</div>
-								<div>
-									<p className="text-sm font-medium">
-										{isDragging
-											? 'Drop your file here'
-											: 'Click to upload or drag and drop'}
-									</p>
-									<p className="text-xs text-muted-foreground mt-1">
-										PDF or Word document (max {maxSizeMB}MB)
-									</p>
-								</div>
+					<div
+						onDragOver={handleDragOver}
+						onDragLeave={handleDragLeave}
+						onDrop={handleDrop}
+						onClick={handleClick}
+						className={cn(
+							'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
+							isDragging
+								? 'border-primary bg-primary/5'
+								: 'border-muted-foreground/25 hover:border-primary/50 hover:bg-accent/50',
+						)}
+					>
+						<div className="flex flex-col items-center gap-4">
+							<div className="text-4xl">📤</div>
+							<div>
+								<p className="text-sm font-medium">
+									{isDragging
+										? 'Drop your files here'
+										: 'Click to upload or drag and drop'}
+								</p>
+								<p className="text-xs text-muted-foreground mt-1">
+									PDF or Word documents (max {maxSizeMB}MB per
+									file)
+								</p>
+							</div>
+							<Button type="button" variant="outline" size="sm">
+								Select Files
+							</Button>
+						</div>
+						<input
+							ref={fileInputRef}
+							type="file"
+							accept=".pdf,.doc,.docx"
+							multiple
+							onChange={handleFileInputChange}
+							className="hidden"
+						/>
+					</div>
+
+					{files.length > 0 && (
+						<div className="space-y-2">
+							<div className="flex items-center justify-between">
+								<p className="text-sm font-medium">
+									{files.length} file
+									{files.length !== 1 ? 's' : ''} selected
+								</p>
 								<Button
 									type="button"
-									variant="outline"
+									variant="ghost"
 									size="sm"
+									onClick={handleRemoveAll}
 								>
-									Select File
+									Remove All
 								</Button>
 							</div>
-							<input
-								ref={fileInputRef}
-								type="file"
-								accept=".pdf,.doc,.docx"
-								onChange={handleFileInputChange}
-								className="hidden"
-							/>
-						</div>
-					) : (
-						<div className="border rounded-lg p-4 bg-muted/50">
-							<div className="flex items-center justify-between gap-4">
-								<div className="flex items-center gap-3 flex-1 min-w-0">
-									<span className="text-2xl">
-										{getFileIcon(file.name)}
-									</span>
-									<div className="flex-1 min-w-0">
-										<p className="text-sm font-medium truncate">
-											{file.name}
-										</p>
-										<p className="text-xs text-muted-foreground">
-											{formatFileSize(file.size)}
-										</p>
+							<div className="space-y-2 max-h-64 overflow-y-auto">
+								{files.map((file, index) => (
+									<div
+										key={`${file.name}-${index}`}
+										className="border rounded-lg p-4 bg-muted/50"
+									>
+										<div className="flex items-center justify-between gap-4">
+											<div className="flex items-center gap-3 flex-1 min-w-0">
+												<span className="text-2xl">
+													{getFileIcon(file.name)}
+												</span>
+												<div className="flex-1 min-w-0">
+													<p className="text-sm font-medium truncate">
+														{file.name}
+													</p>
+													<p className="text-xs text-muted-foreground">
+														{formatFileSize(
+															file.size,
+														)}
+													</p>
+												</div>
+											</div>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() =>
+													handleRemove(index)
+												}
+											>
+												Remove
+											</Button>
+										</div>
 									</div>
-								</div>
-								<Button
-									type="button"
-									variant="outline"
-									size="sm"
-									onClick={handleRemove}
-								>
-									Remove
-								</Button>
+								))}
 							</div>
 						</div>
 					)}
