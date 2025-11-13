@@ -21,6 +21,7 @@ import Link from 'next/link';
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Navbar from '@/components/home/Navbar';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -394,10 +395,11 @@ export default function Home() {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-stone-50 via-neutral-50 to-stone-50/80">
+			<Navbar />
 			{/* Book Cover Effect - Hero Section */}
 			<section
 				ref={heroRef}
-				className="relative overflow-hidden border-b border-stone-200/40 book-page"
+				className="relative overflow-hidden border-b border-stone-200/40 book-page pt-20 md:pt-24"
 			>
 				{/* Subtle book binding */}
 				<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
