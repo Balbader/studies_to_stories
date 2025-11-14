@@ -56,6 +56,42 @@ export default function page() {
 	const howItWorksRef = useRef<HTMLDivElement>(null);
 	const benefitsRef = useRef<HTMLDivElement>(null);
 	const ctaRef = useRef<HTMLDivElement>(null);
+	const heroButtonsRef = useRef<HTMLDivElement>(null);
+	const ctaButtonsRef = useRef<HTMLDivElement>(null);
+
+	// Handle scroll restoration and hash navigation
+	useEffect(() => {
+		// Disable browser scroll restoration
+		if ('scrollRestoration' in history) {
+			history.scrollRestoration = 'manual';
+		}
+
+		// If there's no hash in the URL, scroll to top immediately
+		if (!window.location.hash) {
+			window.scrollTo(0, 0);
+			// Also ensure we're at the top after a brief delay (in case browser tries to restore)
+			setTimeout(() => {
+				window.scrollTo(0, 0);
+			}, 0);
+		} else {
+			// If there's a hash, wait for the page to load then scroll smoothly
+			setTimeout(() => {
+				const hash = window.location.hash.substring(1);
+				const element = document.getElementById(hash);
+				if (element) {
+					const offset = 100; // Account for fixed navbar
+					const elementPosition = element.getBoundingClientRect().top;
+					const offsetPosition =
+						elementPosition + window.pageYOffset - offset;
+
+					window.scrollTo({
+						top: offsetPosition,
+						behavior: 'smooth',
+					});
+				}
+			}, 100);
+		}
+	}, []);
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
@@ -68,6 +104,55 @@ export default function page() {
 					stagger: 0.15,
 					ease: 'power3.out',
 					delay: 0.3,
+				});
+			}
+
+			// Hero buttons animation
+			if (heroButtonsRef.current) {
+				const buttons =
+					heroButtonsRef.current.querySelectorAll('a, button');
+
+				// Ensure buttons are visible by default
+				gsap.set(buttons, { opacity: 1, y: 0, scale: 1 });
+
+				buttons.forEach((button) => {
+					// Entrance animation - explicitly set from and to states
+					gsap.fromTo(
+						button,
+						{
+							opacity: 0,
+							y: 20,
+							scale: 0.95,
+						},
+						{
+							opacity: 1,
+							y: 0,
+							scale: 1,
+							duration: 0.6,
+							ease: 'back.out(1.4)',
+							delay: 0.8,
+						},
+					);
+
+					// Subtle hover animation
+					const handleMouseEnter = () => {
+						gsap.to(button, {
+							scale: 1.05,
+							duration: 0.3,
+							ease: 'power2.out',
+						});
+					};
+
+					const handleMouseLeave = () => {
+						gsap.to(button, {
+							scale: 1,
+							duration: 0.3,
+							ease: 'power2.out',
+						});
+					};
+
+					button.addEventListener('mouseenter', handleMouseEnter);
+					button.addEventListener('mouseleave', handleMouseLeave);
 				});
 			}
 
@@ -148,16 +233,114 @@ export default function page() {
 
 			// CTA section
 			if (ctaRef.current) {
-				gsap.from(ctaRef.current.children, {
-					opacity: 0,
-					y: 30,
-					duration: 0.8,
-					stagger: 0.1,
-					ease: 'power3.out',
-					scrollTrigger: {
-						trigger: ctaRef.current,
-						start: 'top 80%',
-					},
+				// Animate only direct children, but exclude button container to avoid conflicts
+				const children = Array.from(ctaRef.current.children).filter(
+					(child) =>
+						child !== ctaButtonsRef.current &&
+						!child.contains(ctaButtonsRef.current),
+				);
+				if (children.length > 0) {
+					gsap.from(children, {
+						opacity: 0,
+						y: 30,
+						duration: 0.8,
+						stagger: 0.1,
+						ease: 'power3.out',
+						scrollTrigger: {
+							trigger: ctaRef.current,
+							start: 'top 80%',
+						},
+					});
+				}
+			}
+
+			// CTA buttons animation - ensure buttons are always visible
+			if (ctaButtonsRef.current) {
+				const buttons =
+					ctaButtonsRef.current.querySelectorAll('a, button');
+
+				// Force container and buttons to be visible immediately
+				// Use setProperty with important flag via CSS
+				if (ctaButtonsRef.current) {
+					const container = ctaButtonsRef.current as HTMLElement;
+					container.style.setProperty('opacity', '1', 'important');
+					container.style.setProperty(
+						'visibility',
+						'visible',
+						'important',
+					);
+				}
+
+				buttons.forEach((button) => {
+					const btn = button as HTMLElement;
+					// Force visibility using setProperty with important
+					btn.style.setProperty('opacity', '1', 'important');
+					btn.style.setProperty('visibility', 'visible', 'important');
+					btn.style.setProperty('display', '', 'important');
+				});
+
+				// Don't let GSAP animate opacity on these elements
+				// Only animate scale and position for hover effects
+				gsap.set(ctaButtonsRef.current, {
+					opacity: 1,
+					immediateRender: true,
+					clearProps: 'none',
+					force3D: false,
+				});
+
+				buttons.forEach((button) => {
+					const btn = button as HTMLElement;
+
+					// Keep button visible at all times
+					gsap.set(btn, {
+						opacity: 1,
+						y: 0,
+						scale: 1,
+						immediateRender: true,
+						clearProps: 'none',
+						force3D: false,
+					});
+
+					// Gentle pulse animation (only when not hovered)
+					const pulseAnimation = gsap.to(button, {
+						scale: 1.02,
+						duration: 2,
+						repeat: -1,
+						yoyo: true,
+						ease: 'power1.inOut',
+						paused: true,
+					});
+
+					// Start pulse after a delay
+					setTimeout(() => {
+						pulseAnimation.play();
+					}, 1000);
+
+					// Subtle hover animation with pulse pause/resume
+					const handleMouseEnter = () => {
+						pulseAnimation.pause();
+						gsap.to(button, {
+							scale: 1.05,
+							duration: 0.3,
+							ease: 'power2.out',
+						});
+					};
+
+					const handleMouseLeave = () => {
+						gsap.to(button, {
+							scale: 1,
+							duration: 0.3,
+							ease: 'power2.out',
+							onComplete: () => {
+								setTimeout(() => {
+									pulseAnimation.play();
+								}, 300);
+							},
+						});
+					};
+
+					button.addEventListener('mouseenter', handleMouseEnter);
+					button.addEventListener('mouseleave', handleMouseLeave);
 				});
 			}
 		});
@@ -204,7 +387,10 @@ export default function page() {
 							powerful AI-driven tools for enhanced learning
 							experiences.
 						</p>
-						<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+						<div
+							ref={heroButtonsRef}
+							className="flex flex-col sm:flex-row items-center justify-center gap-4"
+						>
 							<Button
 								asChild
 								size="lg"
@@ -1220,6 +1406,44 @@ export default function page() {
 							multi-format learning experiences that students
 							love.
 						</p>
+						<div
+							ref={ctaButtonsRef}
+							className="flex flex-col sm:flex-row items-center justify-center gap-4"
+							style={{ opacity: 1, visibility: 'visible' }}
+						>
+							<Button
+								asChild
+								size="lg"
+								className="bg-white text-stone-900 hover:bg-stone-100 shadow-lg"
+								style={{
+									opacity: 1,
+									visibility: 'visible',
+									display: 'inline-flex',
+								}}
+							>
+								<Link
+									href="/story"
+									className="flex items-center gap-2"
+								>
+									<BookOpenIcon className="size-4" />
+									Create My First Story
+								</Link>
+							</Button>
+							{/* <Button
+								asChild
+								size="lg"
+								variant="outline"
+								className="border-stone-300 bg-white/80"
+							>
+								<Link
+									href="#how-it-works"
+									className="flex items-center gap-2"
+								>
+									<PlayCircle className="size-4" />
+									Watch Demo
+								</Link>
+							</Button> */}
+						</div>
 					</div>
 				</div>
 			</section>
