@@ -40,6 +40,11 @@ export const metadata: Metadata = {
 	title: 'Studies to Stories - Transform Your Learning Into Novels',
 	description:
 		'Turn your recorded classes and notes into captivating novels with AI-powered agents. Transform your educational journey into compelling narratives.',
+	icons: {
+		icon: '/book.gif',
+		shortcut: '/book.gif',
+		apple: '/book.gif',
+	},
 };
 
 export default function RootLayout({
