@@ -901,18 +901,10 @@ export default function Home() {
 									className="w-full bg-stone-900 text-white hover:bg-stone-800 sm:w-auto shadow-sm"
 									asChild
 								>
-									<Link href="/signup">
-										Start Free Trial
+									<Link href="/story">
+										Create My First Story
 										<ArrowRight className="ml-2 size-4" />
 									</Link>
-								</Button>
-								<Button
-									size="lg"
-									variant="outline"
-									className="w-full border-stone-300 text-stone-700 hover:bg-stone-50 sm:w-auto"
-									asChild
-								>
-									<Link href="/demo">Watch Demo</Link>
 								</Button>
 							</div>
 							<p

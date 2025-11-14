@@ -159,10 +159,22 @@ export default function Navbar() {
 							How It Works
 						</Link>
 						<Link
-							href="#get-started"
+							href="/story"
 							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
 						>
 							Get Started
+						</Link>
+						<Link
+							href="#for-educators"
+							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
+						>
+							For Educators
+						</Link>
+						<Link
+							href="/for-schools"
+							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
+						>
+							For Schools
 						</Link>
 					</div>
 
