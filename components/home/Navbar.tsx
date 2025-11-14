@@ -68,7 +68,6 @@ export default function Navbar() {
 		});
 
 		// Scroll-triggered navbar background change
-		let lastScroll = 0;
 		const handleScroll = () => {
 			if (!navRef.current) return;
 
@@ -91,22 +90,6 @@ export default function Navbar() {
 					ease: 'power2.out',
 				});
 			}
-
-			// Hide/show navbar on scroll direction
-			if (currentScroll > lastScroll && currentScroll > 100) {
-				gsap.to(navRef.current, {
-					y: -100,
-					duration: 0.3,
-					ease: 'power2.inOut',
-				});
-			} else {
-				gsap.to(navRef.current, {
-					y: 0,
-					duration: 0.3,
-					ease: 'power2.inOut',
-				});
-			}
-			lastScroll = currentScroll;
 		};
 
 		window.addEventListener('scroll', handleScroll, { passive: true });
@@ -155,16 +138,16 @@ export default function Navbar() {
 						className="hidden md:flex items-center gap-4"
 					>
 						<Link
-							href="#how-it-works"
+							href="#for-students"
 							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
 						>
-							How It Works
+							For Students
 						</Link>
 						<Link
-							href="/for-educators"
+							href="#for-teachers"
 							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
 						>
-							For Educators
+							For Teachers
 						</Link>
 						<Button
 							asChild
@@ -221,18 +204,18 @@ export default function Navbar() {
 								</SheetHeader>
 								<nav className="flex flex-col gap-4 mt-8">
 									<Link
-										href="#how-it-works"
+										href="#for-students"
 										onClick={() => setMobileMenuOpen(false)}
 										className="text-base font-medium text-stone-700 transition-colors hover:text-stone-900 py-2 border-b border-stone-200"
 									>
-										How It Works
+										For Students
 									</Link>
 									<Link
-										href="/for-educators"
+										href="#for-teachers"
 										onClick={() => setMobileMenuOpen(false)}
 										className="text-base font-medium text-stone-700 transition-colors hover:text-stone-900 py-2 border-b border-stone-200"
 									>
-										For Educators
+										For Teachers
 									</Link>
 									<Link
 										href="/story"

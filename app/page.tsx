@@ -1,279 +1,116 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
 	Card,
+	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
 } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Navbar from '@/components/home/Navbar';
 import {
 	BookOpen,
 	Sparkles,
-	Upload,
+	Users,
+	BarChart3,
+	Brain,
+	Video,
+	Headphones,
 	FileText,
-	Wand2,
-	Zap,
 	CheckCircle2,
 	ArrowRight,
+	GraduationCap,
+	TrendingUp,
+	MessageSquare,
+	Target,
+	ClipboardCheck,
+	Lightbulb,
+	Zap,
+	PlayCircle,
+	BookMarked,
+	Mic,
+	Film,
+	Search,
+	Users2,
+	ChartLine,
+	AlertCircle,
+	Star,
+	Rocket,
 } from 'lucide-react';
-import Link from 'next/link';
-import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Navbar from '@/components/home/Navbar';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function Home() {
+export default function page() {
 	const heroRef = useRef<HTMLDivElement>(null);
-	const badgeRef = useRef<HTMLDivElement>(null);
-	const titleRef = useRef<HTMLHeadingElement>(null);
-	const subtitleRef = useRef<HTMLParagraphElement>(null);
-	const ctaRef = useRef<HTMLDivElement>(null);
-	const featuresTitleRef = useRef<HTMLDivElement>(null);
-	const featureCardsRef = useRef<HTMLDivElement>(null);
+	const featuresRef = useRef<HTMLDivElement>(null);
+	const studentToolsRef = useRef<HTMLDivElement>(null);
+	const teacherToolsRef = useRef<HTMLDivElement>(null);
 	const howItWorksRef = useRef<HTMLDivElement>(null);
-	const stepsRef = useRef<HTMLDivElement>(null);
 	const benefitsRef = useRef<HTMLDivElement>(null);
-	const benefitsItemsRef = useRef<HTMLDivElement>(null);
-	const finalCtaRef = useRef<HTMLDivElement>(null);
-	const bookCoverRef = useRef<HTMLDivElement>(null);
-	const storiesTextRef = useRef<HTMLSpanElement>(null);
+	const ctaRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const ctx = gsap.context(() => {
-			// Book cover opening animation
-			if (bookCoverRef.current) {
-				gsap.from(bookCoverRef.current, {
-					rotationY: -90,
-					transformOrigin: 'left center',
-					duration: 1.5,
+			// Hero animations
+			if (heroRef.current) {
+				gsap.from(heroRef.current.children, {
+					opacity: 0,
+					y: 30,
+					duration: 0.8,
+					stagger: 0.15,
 					ease: 'power3.out',
 					delay: 0.3,
 				});
 			}
 
-			// Hero animations with book page turn effect
-			if (
-				badgeRef.current &&
-				titleRef.current &&
-				subtitleRef.current &&
-				ctaRef.current
-			) {
-				const tl = gsap.timeline({ delay: 0.5 });
-				tl.from(badgeRef.current, {
+			// Features section
+			if (featuresRef.current) {
+				gsap.from(featuresRef.current.children, {
 					opacity: 0,
-					y: -20,
-					duration: 0.8,
-					ease: 'power3.out',
-				})
-					.from(
-						titleRef.current,
-						{
-							opacity: 0,
-							y: 30,
-							rotationX: 15,
-							duration: 1,
-							ease: 'power3.out',
-						},
-						'-=0.4',
-					)
-					.from(
-						subtitleRef.current,
-						{
-							opacity: 0,
-							y: 20,
-							duration: 0.8,
-							ease: 'power3.out',
-						},
-						'-=0.5',
-					)
-					.from(
-						ctaRef.current.children,
-						{
-							opacity: 0,
-							y: 20,
-							duration: 0.6,
-							stagger: 0.15,
-							ease: 'power3.out',
-						},
-						'-=0.4',
-					);
-
-				// Subtle page flutter animation
-				gsap.to(heroRef.current, {
-					rotation: 0.5,
-					duration: 3,
-					repeat: -1,
-					yoyo: true,
-					ease: 'sine.inOut',
-				});
-			}
-
-			// Handwriting animation for "Stories"
-			if (storiesTextRef.current) {
-				const text = storiesTextRef.current;
-				const originalText = text.textContent || '';
-				const letters = originalText.split('');
-
-				text.textContent = ''; // Clear original text
-
-				// Create span for each letter with proper styling
-				const letterSpans: HTMLElement[] = [];
-				letters.forEach((letter) => {
-					const span = document.createElement('span');
-					span.textContent = letter === ' ' ? '\u00A0' : letter;
-					span.style.display = 'inline-block';
-					span.style.opacity = '0';
-					span.style.clipPath = 'inset(0 100% 0 0)';
-					span.style.willChange =
-						'clip-path, opacity, transform, filter';
-					span.style.transform = 'scale(0.8) rotate(-2deg)';
-					span.style.filter = 'blur(2px)';
-					text.appendChild(span);
-					letterSpans.push(span);
-				});
-
-				// Use requestAnimationFrame to ensure DOM is ready
-				requestAnimationFrame(() => {
-					// Animate each letter being written with handwriting-like effect
-					const writingTimeline = gsap.timeline({ delay: 2.5 });
-
-					letterSpans.forEach((span, index) => {
-						// Vary timing slightly for more natural handwriting feel
-						const baseDelay = index * 0.18;
-						const randomVariation = (Math.random() - 0.5) * 0.05;
-						const delay = baseDelay + randomVariation;
-
-						// Vary duration slightly for each letter
-						const baseDuration = 0.35;
-						const durationVariation = (Math.random() - 0.5) * 0.1;
-						const duration = baseDuration + durationVariation;
-
-						// Animate the letter being drawn (reveal from left to right like ink)
-						writingTimeline.to(
-							span,
-							{
-								clipPath: 'inset(0 0% 0 0)',
-								opacity: 1,
-								duration: duration,
-								ease: 'power1.inOut',
-							},
-							delay,
-						);
-
-						// Add ink appearance effect - start blurred and small, then sharpen
-						writingTimeline.fromTo(
-							span,
-							{
-								filter: 'blur(3px)',
-								scale: 0.85,
-								rotation: -3 + Math.random() * 2,
-							},
-							{
-								filter: 'blur(0px)',
-								scale: 1,
-								rotation: -1 + Math.random() * 0.5,
-								duration: duration * 0.6,
-								ease: 'power2.out',
-							},
-							delay,
-						);
-
-						// Add slight lift effect after writing (pen lifting off paper)
-						writingTimeline.to(
-							span,
-							{
-								y: -1,
-								duration: 0.1,
-								ease: 'power2.out',
-							},
-							delay + duration - 0.1,
-						);
-
-						writingTimeline.to(
-							span,
-							{
-								y: 0,
-								duration: 0.15,
-								ease: 'power2.in',
-							},
-							delay + duration,
-						);
-					});
-				});
-			}
-
-			// Features section - page turn effect
-			if (featuresTitleRef.current) {
-				gsap.from(featuresTitleRef.current.children, {
-					opacity: 0,
-					x: -30,
-					rotationY: -10,
+					y: 50,
 					duration: 0.8,
 					stagger: 0.1,
 					ease: 'power3.out',
 					scrollTrigger: {
-						trigger: featuresTitleRef.current,
+						trigger: featuresRef.current,
 						start: 'top 80%',
 					},
 				});
 			}
 
-			if (featureCardsRef.current) {
-				const cards = Array.from(
-					featureCardsRef.current.children,
-				) as HTMLElement[];
-
-				// Animate in on scroll - use immediateRender: false so cards stay visible until animation starts
-				gsap.fromTo(
-					cards,
-					{
-						opacity: 0,
-						y: 50,
-						rotationX: 10,
-						scale: 0.95,
+			// Student tools section
+			if (studentToolsRef.current) {
+				gsap.from(studentToolsRef.current.children, {
+					opacity: 0,
+					x: -50,
+					duration: 0.8,
+					stagger: 0.1,
+					ease: 'power3.out',
+					scrollTrigger: {
+						trigger: studentToolsRef.current,
+						start: 'top 80%',
 					},
-					{
-						opacity: 1,
-						y: 0,
-						rotationX: 0,
-						scale: 1,
-						duration: 0.7,
-						stagger: 0.1,
-						ease: 'power3.out',
-						immediateRender: false,
-						scrollTrigger: {
-							trigger: featureCardsRef.current,
-							start: 'top 85%',
-							toggleActions: 'play none none none',
-						},
+				});
+			}
+
+			// Teacher tools section
+			if (teacherToolsRef.current) {
+				gsap.from(teacherToolsRef.current.children, {
+					opacity: 0,
+					x: 50,
+					duration: 0.8,
+					stagger: 0.1,
+					ease: 'power3.out',
+					scrollTrigger: {
+						trigger: teacherToolsRef.current,
+						start: 'top 80%',
 					},
-				);
-
-				// Book page flip on hover
-				Array.from(featureCardsRef.current.children).forEach((card) => {
-					const cardElement = card as HTMLElement;
-
-					cardElement.addEventListener('mouseenter', () => {
-						gsap.to(cardElement, {
-							y: -12,
-							rotationY: 5,
-							scale: 1.02,
-							duration: 0.4,
-							ease: 'power2.out',
-						});
-					});
-					cardElement.addEventListener('mouseleave', () => {
-						gsap.to(cardElement, {
-							y: 0,
-							rotationY: 0,
-							scale: 1,
-							duration: 0.4,
-							ease: 'power2.out',
-						});
-					});
 				});
 			}
 
@@ -283,7 +120,7 @@ export default function Home() {
 					opacity: 0,
 					y: 30,
 					duration: 0.8,
-					stagger: 0.1,
+					stagger: 0.15,
 					ease: 'power3.out',
 					scrollTrigger: {
 						trigger: howItWorksRef.current,
@@ -292,43 +129,13 @@ export default function Home() {
 				});
 			}
 
-			if (stepsRef.current) {
-				gsap.from(stepsRef.current.children, {
-					opacity: 0,
-					x: -50,
-					rotationY: -15,
-					duration: 0.9,
-					stagger: 0.2,
-					ease: 'power3.out',
-					scrollTrigger: {
-						trigger: stepsRef.current,
-						start: 'top 80%',
-					},
-				});
-
-				// Animate step numbers like page numbers
-				gsap.from(
-					stepsRef.current.querySelectorAll('div > div:first-child'),
-					{
-						scale: 0,
-						rotation: -180,
-						duration: 0.7,
-						stagger: 0.2,
-						ease: 'back.out(1.7)',
-						scrollTrigger: {
-							trigger: stepsRef.current,
-							start: 'top 80%',
-						},
-					},
-				);
-			}
-
 			// Benefits section
 			if (benefitsRef.current) {
 				gsap.from(benefitsRef.current.children, {
 					opacity: 0,
-					y: 30,
+					scale: 0.9,
 					duration: 0.8,
+					stagger: 0.1,
 					ease: 'power3.out',
 					scrollTrigger: {
 						trigger: benefitsRef.current,
@@ -337,55 +144,18 @@ export default function Home() {
 				});
 			}
 
-			if (benefitsItemsRef.current) {
-				gsap.from(benefitsItemsRef.current.children, {
-					opacity: 0,
-					x: -30,
-					duration: 0.7,
-					stagger: 0.15,
-					ease: 'power3.out',
-					scrollTrigger: {
-						trigger: benefitsItemsRef.current,
-						start: 'top 80%',
-					},
-				});
-
-				// Animate checkmarks
-				gsap.from(benefitsItemsRef.current.querySelectorAll('svg'), {
-					scale: 0,
-					rotation: -180,
-					duration: 0.6,
-					stagger: 0.15,
-					ease: 'back.out(1.7)',
-					scrollTrigger: {
-						trigger: benefitsItemsRef.current,
-						start: 'top 80%',
-					},
-				});
-			}
-
-			// Final CTA
-			if (finalCtaRef.current) {
-				gsap.from(finalCtaRef.current.children, {
+			// CTA section
+			if (ctaRef.current) {
+				gsap.from(ctaRef.current.children, {
 					opacity: 0,
 					y: 30,
 					duration: 0.8,
 					stagger: 0.1,
 					ease: 'power3.out',
 					scrollTrigger: {
-						trigger: finalCtaRef.current,
+						trigger: ctaRef.current,
 						start: 'top 80%',
 					},
-				});
-
-				// Gentle pulse for CTA buttons
-				const buttons = finalCtaRef.current.querySelectorAll('a');
-				gsap.to(buttons[0], {
-					scale: 1.03,
-					duration: 2.5,
-					repeat: -1,
-					yoyo: true,
-					ease: 'power2.inOut',
 				});
 			}
 		});
@@ -394,281 +164,856 @@ export default function Home() {
 	}, []);
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-stone-50 via-neutral-50 to-stone-50/80">
+		<div className="min-h-screen w-full book-page">
 			<Navbar />
-			{/* Book Cover Effect - Hero Section */}
+			{/* Hero Section */}
 			<section
 				ref={heroRef}
-				className="relative overflow-hidden border-b border-stone-200/40 book-page pt-20 md:pt-24"
+				className="relative overflow-hidden border-b border-stone-200/40 pt-24 pb-16 md:pt-32 md:pb-24"
 			>
-				{/* Subtle book binding */}
+				{/* Book binding decoration */}
 				<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
 				<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
-
-				{/* Page number decoration - more subtle */}
-				<div className="absolute top-8 right-8 text-stone-400/50 font-serif text-xs tracking-wider">
-					1
-				</div>
-
-				{/* Subtle bookmark ribbon */}
-				<div className="absolute top-0 right-20 w-0.5 h-20 bg-gradient-to-b from-rose-400/40 to-rose-500/40" />
-
-				<div className="container mx-auto px-4 py-20 md:py-32">
-					<div className="mx-auto max-w-4xl">
-						<div
-							ref={bookCoverRef}
-							className="book-shadow rounded-xl bg-white/90 backdrop-blur-sm p-8 md:p-12 border border-stone-200/50 relative"
+				<div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-pink-50/30" />
+				<div className="container mx-auto px-4 relative z-10">
+					<div className="mx-auto max-w-4xl text-center">
+						<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 backdrop-blur-sm px-5 py-2 text-sm shadow-sm">
+							<GraduationCap className="size-4 text-blue-600" />
+							<span className="text-stone-700 font-medium">
+								Transform Education with AI
+							</span>
+						</div>
+						<h1
+							className="mb-6 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl md:text-6xl lg:text-7xl"
+							style={{ fontFamily: 'var(--font-playfair)' }}
 						>
-							<div className="mx-auto max-w-3xl text-center">
-								<div
-									ref={badgeRef}
-									className="mb-8 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-stone-50/80 backdrop-blur-sm px-5 py-2 text-sm"
+							Your Agentic Teaching
+							<br />
+							<span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+								Assistant Platform
+							</span>
+						</h1>
+						<p
+							className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-stone-600 sm:text-xl"
+							style={{ fontFamily: 'var(--font-crimson)' }}
+						>
+							Record every class, generate correlated content in 4
+							formats, and empower both teachers and students with
+							powerful AI-driven tools for enhanced learning
+							experiences.
+						</p>
+						<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+							<Button
+								asChild
+								size="lg"
+								className="bg-stone-900 text-white hover:bg-stone-800 shadow-lg"
+							>
+								<Link
+									href="/story"
+									className="flex items-center gap-2"
 								>
-									<Sparkles className="size-4 text-stone-600" />
-									<span className="text-stone-700 font-medium">
-										Powered by AI Agents
-									</span>
-								</div>
-								<h1
-									ref={titleRef}
-									className="mb-8 font-serif text-5xl font-bold tracking-tight text-stone-900 sm:text-6xl md:text-7xl lg:text-8xl"
-									style={{
-										fontFamily: 'var(--font-playfair)',
-									}}
+									<Rocket className="size-4" />
+									Get Started Free
+								</Link>
+							</Button>
+							<Button
+								asChild
+								size="lg"
+								variant="outline"
+								className="border-stone-300 bg-white/80"
+							>
+								<Link
+									href="#how-it-works"
+									className="flex items-center gap-2"
 								>
-									Turn Your{' '}
-									<span className="text-stone-700 italic">
-										Studies
-									</span>{' '}
-									Into{' '}
-									<span
-										ref={storiesTextRef}
-										className="text-stone-700 handwritten-text relative inline-block"
-										style={{
-											fontFamily:
-												'var(--font-handwritten)',
-										}}
-									>
-										Stories
-									</span>
-								</h1>
-								<p
-									ref={subtitleRef}
-									className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-stone-600 sm:text-xl"
-									style={{
-										fontFamily: 'var(--font-crimson)',
-									}}
-								>
-									Transform your recorded classes and notes
-									into captivating novels. Our AI agents
-									analyze your content and craft engaging
-									narratives that bring your learning to life.
-								</p>
-								<div
-									ref={ctaRef}
-									className="flex flex-col items-center justify-center gap-4 sm:flex-row"
-								>
-									<Button
-										size="lg"
-										className="w-full bg-stone-900 text-white hover:bg-stone-800 sm:w-auto shadow-sm"
-										asChild
-									>
-										<Link href="#get-started">
-											Get Started Free
-											<ArrowRight className="ml-2 size-4" />
-										</Link>
-									</Button>
-									<Button
-										size="lg"
-										variant="outline"
-										className="w-full border-stone-300 text-stone-700 hover:bg-stone-50 sm:w-auto"
-										asChild
-									>
-										<Link href="#how-it-works">
-											See How It Works
-										</Link>
-									</Button>
-								</div>
-							</div>
+									<PlayCircle className="size-4" />
+									Watch Demo
+								</Link>
+							</Button>
 						</div>
 					</div>
 				</div>
 			</section>
 
-			{/* Features Section - Book Pages */}
-			<section id="features" className="book-page py-20 md:py-32">
+			{/* Four Content Formats Section */}
+			<section
+				ref={featuresRef}
+				id="content-formats"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
+			>
 				<div className="container mx-auto px-4">
 					<div className="mx-auto max-w-6xl">
-						{/* Page number */}
-						<div className="mb-4 text-right text-stone-400/50 font-serif text-xs tracking-wider">
-							2
-						</div>
-
-						<div
-							ref={featuresTitleRef}
-							className="mb-16 text-center"
-						>
+						<div className="text-center mb-12">
 							<h2
-								className="mb-6 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl"
+								className="mb-4 font-serif text-3xl font-bold text-stone-900 sm:text-4xl md:text-5xl"
 								style={{ fontFamily: 'var(--font-playfair)' }}
 							>
-								Everything You Need to Transform Learning
+								Four Correlated Content Formats
 							</h2>
 							<p
 								className="mx-auto max-w-2xl text-lg text-stone-600"
 								style={{ fontFamily: 'var(--font-crimson)' }}
 							>
-								Our intelligent platform handles everything from
-								transcription to narrative creation
+								Every class recording automatically generates
+								content in multiple formats, all perfectly
+								synchronized and correlated for comprehensive
+								learning.
 							</p>
 						</div>
-						<div
-							ref={featureCardsRef}
-							className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-						>
-							<Card className="book-shadow border-stone-200/50 bg-white/95 hover:bg-white transition-all hover:border-stone-300/50">
+
+						<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+							<Card className="border-stone-200/50 bg-gradient-to-br from-blue-50/50 to-blue-100/30 hover:shadow-lg transition-all duration-300">
 								<CardHeader>
-									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
-										<Upload className="size-6 text-stone-700" />
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-blue-100 border border-blue-200">
+										<FileText className="size-6 text-blue-600" />
 									</div>
-									<CardTitle className="font-serif text-stone-900">
-										Easy Upload
+									<CardTitle className="text-stone-900">
+										Enhanced Lesson
 									</CardTitle>
-									<CardDescription
-										className="text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Upload audio recordings, video lectures,
-										or text notes. We support multiple
-										formats and automatically transcribe
-										your content.
+									<CardDescription className="text-stone-600">
+										AI-enhanced study materials with
+										real-world examples, metaphors, and
+										interactive activities
 									</CardDescription>
 								</CardHeader>
 							</Card>
-							<Card className="book-shadow border-stone-200/50 bg-white/95 hover:bg-white transition-all hover:border-stone-300/50">
+
+							<Card className="border-stone-200/50 bg-gradient-to-br from-purple-50/50 to-purple-100/30 hover:shadow-lg transition-all duration-300">
 								<CardHeader>
-									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
-										<Wand2 className="size-6 text-stone-700" />
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-purple-100 border border-purple-200">
+										<BookOpen className="size-6 text-purple-600" />
 									</div>
-									<CardTitle className="font-serif text-stone-900">
-										AI-Powered Analysis
+									<CardTitle className="text-stone-900">
+										Novel Format
 									</CardTitle>
-									<CardDescription
-										className="text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Our agents understand context, extract
-										key concepts, and identify narrative
-										opportunities in your educational
-										content.
+									<CardDescription className="text-stone-600">
+										Engaging stories that transform lessons
+										into memorable narratives with
+										characters and plotlines
 									</CardDescription>
 								</CardHeader>
 							</Card>
-							<Card className="book-shadow border-stone-200/50 bg-white/95 hover:bg-white transition-all hover:border-stone-300/50">
+
+							<Card className="border-stone-200/50 bg-gradient-to-br from-pink-50/50 to-pink-100/30 hover:shadow-lg transition-all duration-300">
 								<CardHeader>
-									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
-										<BookOpen className="size-6 text-stone-700" />
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-pink-100 border border-pink-200">
+										<Headphones className="size-6 text-pink-600" />
 									</div>
-									<CardTitle className="font-serif text-stone-900">
-										Novel Generation
+									<CardTitle className="text-stone-900">
+										Audible Format
 									</CardTitle>
-									<CardDescription
-										className="text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Watch as your studies transform into
-										compelling narratives with rich
-										characters, engaging plots, and vivid
-										storytelling.
+									<CardDescription className="text-stone-600">
+										Audio versions perfect for learning on
+										the go, with natural narration and
+										engaging storytelling
 									</CardDescription>
 								</CardHeader>
 							</Card>
-							<Card className="book-shadow border-stone-200/50 bg-white/95 hover:bg-white transition-all hover:border-stone-300/50">
+
+							<Card className="border-stone-200/50 bg-gradient-to-br from-orange-50/50 to-orange-100/30 hover:shadow-lg transition-all duration-300">
 								<CardHeader>
-									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
-										<FileText className="size-6 text-stone-700" />
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-orange-100 border border-orange-200">
+										<Film className="size-6 text-orange-600" />
 									</div>
-									<CardTitle className="font-serif text-stone-900">
-										Multiple Formats
+									<CardTitle className="text-stone-900">
+										Netflix Series Style
 									</CardTitle>
-									<CardDescription
-										className="text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Export your novels in various
-										formats—PDF, EPUB, or continue editing
-										in our platform.
+									<CardDescription className="text-stone-600">
+										Binge-worthy educational series with
+										episodes, cliffhangers, and cinematic
+										storytelling
 									</CardDescription>
 								</CardHeader>
 							</Card>
-							<Card className="book-shadow border-stone-200/50 bg-white/95 hover:bg-white transition-all hover:border-stone-300/50">
+						</div>
+
+						<div className="mt-8 text-center">
+							<p className="text-sm text-stone-500">
+								<CheckCircle2 className="inline size-4 mr-1 text-green-600" />
+								All formats are automatically synchronized and
+								correlated from the same class recording
+							</p>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* Student Tools Section */}
+			<section
+				ref={studentToolsRef}
+				id="for-students"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
+			>
+				<div className="container mx-auto px-4">
+					<div className="mx-auto max-w-6xl">
+						<div className="text-center mb-12">
+							<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 backdrop-blur-sm px-5 py-2 text-sm">
+								<Users className="size-4 text-blue-600" />
+								<span className="text-stone-700 font-medium">
+									For Students
+								</span>
+							</div>
+							<h2
+								className="mb-4 font-serif text-3xl font-bold text-stone-900 sm:text-4xl md:text-5xl"
+								style={{ fontFamily: 'var(--font-playfair)' }}
+							>
+								Empower Your Learning Journey
+							</h2>
+							<p
+								className="mx-auto max-w-2xl text-lg text-stone-600"
+								style={{ fontFamily: 'var(--font-crimson)' }}
+							>
+								Interactive tools designed to help you master
+								every lesson through multiple learning
+								modalities
+							</p>
+						</div>
+
+						<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+							<Card className="border-stone-200/50 bg-white hover:shadow-lg transition-all duration-300">
 								<CardHeader>
-									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
-										<Zap className="size-6 text-stone-700" />
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-blue-100 border border-blue-200">
+										<ClipboardCheck className="size-6 text-blue-600" />
 									</div>
-									<CardTitle className="font-serif text-stone-900">
-										Fast Processing
+									<CardTitle className="text-stone-900">
+										Knowledge Testing
 									</CardTitle>
-									<CardDescription
-										className="text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Get your novel ready in minutes, not
-										days. Our optimized AI pipeline delivers
-										results quickly.
+									<CardDescription className="text-stone-600">
+										Interactive quizzes and assessments
+										based on the series you watched. Test
+										your understanding with adaptive
+										questions
 									</CardDescription>
 								</CardHeader>
+								<CardContent>
+									<ul className="space-y-2 text-sm text-stone-600">
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>
+												Adaptive question difficulty
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>
+												Instant feedback and
+												explanations
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Progress tracking</span>
+										</li>
+									</ul>
+								</CardContent>
 							</Card>
-							<Card className="book-shadow border-stone-200/50 bg-white/95 hover:bg-white transition-all hover:border-stone-300/50">
+
+							<Card className="border-stone-200/50 bg-white hover:shadow-lg transition-all duration-300">
 								<CardHeader>
-									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50">
-										<Sparkles className="size-6 text-stone-700" />
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-purple-100 border border-purple-200">
+										<Users2 className="size-6 text-purple-600" />
 									</div>
-									<CardTitle className="font-serif text-stone-900">
-										Customizable Style
+									<CardTitle className="text-stone-900">
+										Peer-to-Peer Learning
 									</CardTitle>
-									<CardDescription
-										className="text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Choose your narrative style, genre, and
-										tone. Make each novel uniquely yours
-										while preserving your original content.
+									<CardDescription className="text-stone-600">
+										Connect with classmates, form study
+										groups, and learn together through
+										collaborative features
 									</CardDescription>
 								</CardHeader>
+								<CardContent>
+									<ul className="space-y-2 text-sm text-stone-600">
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Study group formation</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>
+												Peer discussions and Q&A
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>
+												Collaborative note-taking
+											</span>
+										</li>
+									</ul>
+								</CardContent>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-white hover:shadow-lg transition-all duration-300">
+								<CardHeader>
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-pink-100 border border-pink-200">
+										<Search className="size-6 text-pink-600" />
+									</div>
+									<CardTitle className="text-stone-900">
+										Smart Search & Review
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Quickly find specific topics across all
+										formats. Jump to exact moments in
+										videos, audio, or text
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<ul className="space-y-2 text-sm text-stone-600">
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Cross-format search</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>
+												Bookmark important moments
+											</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>
+												Personalized review sessions
+											</span>
+										</li>
+									</ul>
+								</CardContent>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-white hover:shadow-lg transition-all duration-300">
+								<CardHeader>
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-green-100 border border-green-200">
+										<Brain className="size-6 text-green-600" />
+									</div>
+									<CardTitle className="text-stone-900">
+										AI Study Assistant
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Get instant answers to questions,
+										concept explanations, and personalized
+										study recommendations
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<ul className="space-y-2 text-sm text-stone-600">
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>24/7 AI tutor support</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Concept clarification</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Study plan generation</span>
+										</li>
+									</ul>
+								</CardContent>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-white hover:shadow-lg transition-all duration-300">
+								<CardHeader>
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-orange-100 border border-orange-200">
+										<TrendingUp className="size-6 text-orange-600" />
+									</div>
+									<CardTitle className="text-stone-900">
+										Progress Dashboard
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Track your learning progress, see your
+										strengths and areas for improvement with
+										visual analytics
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<ul className="space-y-2 text-sm text-stone-600">
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Learning analytics</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Performance insights</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Achievement badges</span>
+										</li>
+									</ul>
+								</CardContent>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-white hover:shadow-lg transition-all duration-300">
+								<CardHeader>
+									<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-indigo-100 border border-indigo-200">
+										<MessageSquare className="size-6 text-indigo-600" />
+									</div>
+									<CardTitle className="text-stone-900">
+										Interactive Discussions
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Engage in class discussions, ask
+										questions, and participate in
+										peer-reviewed activities
+									</CardDescription>
+								</CardHeader>
+								<CardContent>
+									<ul className="space-y-2 text-sm text-stone-600">
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Real-time Q&A</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Discussion forums</span>
+										</li>
+										<li className="flex items-start gap-2">
+											<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+											<span>Peer feedback system</span>
+										</li>
+									</ul>
+								</CardContent>
 							</Card>
 						</div>
 					</div>
 				</div>
 			</section>
 
-			{/* How It Works Section - Book Chapter */}
+			{/* Teacher Tools Section */}
 			<section
-				id="how-it-works"
-				className="border-y border-stone-200/40 book-page py-20 md:py-32"
+				ref={teacherToolsRef}
+				id="for-teachers"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
 			>
 				<div className="container mx-auto px-4">
 					<div className="mx-auto max-w-6xl">
-						{/* Page number */}
-						<div className="mb-4 text-right text-stone-400/50 font-serif text-xs tracking-wider">
-							3
+						<div className="text-center mb-12">
+							<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 backdrop-blur-sm px-5 py-2 text-sm">
+								<GraduationCap className="size-4 text-purple-600" />
+								<span className="text-stone-700 font-medium">
+									For Teachers
+								</span>
+							</div>
+							<h2
+								className="mb-4 font-serif text-3xl font-bold text-stone-900 sm:text-4xl md:text-5xl"
+								style={{ fontFamily: 'var(--font-playfair)' }}
+							>
+								Comprehensive Teaching Analytics
+							</h2>
+							<p
+								className="mx-auto max-w-2xl text-lg text-stone-600"
+								style={{ fontFamily: 'var(--font-crimson)' }}
+							>
+								Powerful insights and tools to help you
+								understand your students better and improve
+								teaching effectiveness
+							</p>
 						</div>
 
-						<div ref={howItWorksRef} className="mb-16 text-center">
+						<Tabs defaultValue="analytics" className="w-full">
+							<TabsList className="mb-8 w-full justify-start bg-stone-100/50 border border-stone-200/50">
+								<TabsTrigger
+									value="analytics"
+									className="data-[state=active]:bg-white data-[state=active]:text-stone-900"
+								>
+									<BarChart3 className="mr-2 size-4" />
+									Analytics
+								</TabsTrigger>
+								<TabsTrigger
+									value="performance"
+									className="data-[state=active]:bg-white data-[state=active]:text-stone-900"
+								>
+									<TrendingUp className="mr-2 size-4" />
+									Performance
+								</TabsTrigger>
+								<TabsTrigger
+									value="insights"
+									className="data-[state=active]:bg-white data-[state=active]:text-stone-900"
+								>
+									<Lightbulb className="mr-2 size-4" />
+									Insights
+								</TabsTrigger>
+							</TabsList>
+
+							<TabsContent value="analytics" className="mt-0">
+								<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-blue-100 border border-blue-200">
+												<BarChart3 className="size-6 text-blue-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Class Analytics
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												Comprehensive overview of class
+												engagement, participation, and
+												content consumption patterns
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Engagement metrics
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Content format
+														preferences
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Time spent per topic
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-purple-100 border border-purple-200">
+												<Users className="size-6 text-purple-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Student Participation
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												Track individual and group
+												participation in discussions,
+												quizzes, and peer activities
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Discussion contributions
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Quiz completion rates
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Peer interaction metrics
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-pink-100 border border-pink-200">
+												<ChartLine className="size-6 text-pink-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Learning Trends
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												Identify learning patterns,
+												popular topics, and areas where
+												students spend the most time
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Topic popularity
+														analysis
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Learning velocity
+														tracking
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Content effectiveness
+														metrics
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+								</div>
+							</TabsContent>
+
+							<TabsContent value="performance" className="mt-0">
+								<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-green-100 border border-green-200">
+												<Target className="size-6 text-green-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Individual Performance
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												Detailed performance tracking
+												for each student with strengths,
+												weaknesses, and progress over
+												time
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Test and quiz scores
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Assignment completion
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Progress reports
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-orange-100 border border-orange-200">
+												<Star className="size-6 text-orange-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Class Comparisons
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												Compare performance across
+												different classes, identify best
+												practices, and benchmark results
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Class-wide statistics
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Peer group analysis
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Historical comparisons
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-indigo-100 border border-indigo-200">
+												<TrendingUp className="size-6 text-indigo-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Growth Tracking
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												Monitor student improvement over
+												time, celebrate achievements,
+												and identify areas needing
+												attention
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Learning curve analysis
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Milestone achievements
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Predictive analytics
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+								</div>
+							</TabsContent>
+
+							<TabsContent value="insights" className="mt-0">
+								<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-red-100 border border-red-200">
+												<AlertCircle className="size-6 text-red-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Pain Point Detection
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												AI-powered identification of
+												concepts students struggle with,
+												allowing for targeted
+												intervention
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Struggle area
+														identification
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Common misconception
+														alerts
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Early warning system
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-yellow-100 border border-yellow-200">
+												<Lightbulb className="size-6 text-yellow-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Teaching Recommendations
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												AI suggestions for improving
+												teaching methods based on
+												student performance and
+												engagement data
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Content optimization
+														tips
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Engagement strategies
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Intervention suggestions
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+
+									<Card className="border-stone-200/50 bg-white">
+										<CardHeader>
+											<div className="mb-4 flex size-12 items-center justify-center rounded-lg bg-teal-100 border border-teal-200">
+												<Zap className="size-6 text-teal-600" />
+											</div>
+											<CardTitle className="text-stone-900">
+												Automated Insights
+											</CardTitle>
+											<CardDescription className="text-stone-600">
+												Get weekly and monthly reports
+												with key insights, trends, and
+												actionable recommendations
+											</CardDescription>
+										</CardHeader>
+										<CardContent>
+											<ul className="space-y-2 text-sm text-stone-600">
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Weekly summary reports
+													</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>Trend analysis</span>
+												</li>
+												<li className="flex items-start gap-2">
+													<CheckCircle2 className="size-4 text-green-600 mt-0.5 shrink-0" />
+													<span>
+														Actionable insights
+													</span>
+												</li>
+											</ul>
+										</CardContent>
+									</Card>
+								</div>
+							</TabsContent>
+						</Tabs>
+					</div>
+				</div>
+			</section>
+
+			{/* How It Works Section */}
+			<section
+				ref={howItWorksRef}
+				id="how-it-works"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
+			>
+				<div className="container mx-auto px-4">
+					<div className="mx-auto max-w-6xl">
+						<div className="text-center mb-12">
 							<h2
-								className="mb-6 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl"
+								className="mb-4 font-serif text-3xl font-bold text-stone-900 sm:text-4xl md:text-5xl"
 								style={{ fontFamily: 'var(--font-playfair)' }}
 							>
 								How It Works
@@ -677,90 +1022,67 @@ export default function Home() {
 								className="mx-auto max-w-2xl text-lg text-stone-600"
 								style={{ fontFamily: 'var(--font-crimson)' }}
 							>
-								Three simple steps from your studies to a
-								published novel
+								Simple, automated, and powerful. Transform your
+								classes into engaging learning experiences in
+								just a few steps.
 							</p>
 						</div>
-						<div className="mx-auto max-w-4xl">
-							<div
-								ref={stepsRef}
-								className="grid gap-12 md:grid-cols-3"
-							>
-								<div className="relative">
-									{/* Decorative line like book margin */}
-									<div className="absolute -left-8 top-0 bottom-0 w-0.5 bg-stone-200/40" />
-									<div
-										className="mb-6 flex size-14 items-center justify-center rounded-full border-2 border-stone-300 bg-stone-50 text-xl font-bold text-stone-700"
-										style={{
-											fontFamily: 'var(--font-playfair)',
-										}}
-									>
-										1
-									</div>
-									<h3 className="mb-3 font-serif text-2xl font-semibold text-stone-900">
-										Upload Your Content
-									</h3>
-									<p
-										className="leading-relaxed text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Upload your recorded classes, lecture
-										notes, or study materials. Our platform
-										supports audio, video, and text formats.
-									</p>
+
+						<div className="grid gap-8 md:grid-cols-4">
+							<div className="text-center">
+								<div className="mb-4 mx-auto flex size-16 items-center justify-center rounded-full bg-blue-100 border-4 border-blue-200">
+									<Video className="size-8 text-blue-600" />
 								</div>
-								<div className="relative">
-									<div className="absolute -left-8 top-0 bottom-0 w-0.5 bg-stone-200/40" />
-									<div
-										className="mb-6 flex size-14 items-center justify-center rounded-full border-2 border-stone-300 bg-stone-50 text-xl font-bold text-stone-700"
-										style={{
-											fontFamily: 'var(--font-playfair)',
-										}}
-									>
-										2
-									</div>
-									<h3 className="mb-3 font-serif text-2xl font-semibold text-stone-900">
-										AI Agents Work Their Magic
-									</h3>
-									<p
-										className="leading-relaxed text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Our intelligent agents analyze your
-										content, extract themes, and craft a
-										cohesive narrative structure that
-										transforms learning into storytelling.
-									</p>
+								<h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
+									Record Class
+								</h3>
+								<p className="text-stone-600">
+									Automatically record your class sessions.
+									Our AI captures everything - audio, video,
+									and screen content.
+								</p>
+							</div>
+
+							<div className="text-center">
+								<div className="mb-4 mx-auto flex size-16 items-center justify-center rounded-full bg-purple-100 border-4 border-purple-200">
+									<Sparkles className="size-8 text-purple-600" />
 								</div>
-								<div className="relative">
-									<div className="absolute -left-8 top-0 bottom-0 w-0.5 bg-stone-200/40" />
-									<div
-										className="mb-6 flex size-14 items-center justify-center rounded-full border-2 border-stone-300 bg-stone-50 text-xl font-bold text-stone-700"
-										style={{
-											fontFamily: 'var(--font-playfair)',
-										}}
-									>
-										3
-									</div>
-									<h3 className="mb-3 font-serif text-2xl font-semibold text-stone-900">
-										Receive Your Novel
-									</h3>
-									<p
-										className="leading-relaxed text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Download your completed novel, review
-										and edit as needed, and share your
-										transformed learning journey with the
-										world.
-									</p>
+								<h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
+									AI Processing
+								</h3>
+								<p className="text-stone-600">
+									Our agentic AI processes the recording and
+									generates all 4 content formats
+									automatically, all perfectly correlated.
+								</p>
+							</div>
+
+							<div className="text-center">
+								<div className="mb-4 mx-auto flex size-16 items-center justify-center rounded-full bg-pink-100 border-4 border-pink-200">
+									<BookOpen className="size-8 text-pink-600" />
 								</div>
+								<h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
+									Content Available
+								</h3>
+								<p className="text-stone-600">
+									Students access Enhanced lessons, Novels,
+									Audible versions, and Netflix-style series -
+									all synchronized.
+								</p>
+							</div>
+
+							<div className="text-center">
+								<div className="mb-4 mx-auto flex size-16 items-center justify-center rounded-full bg-green-100 border-4 border-green-200">
+									<BarChart3 className="size-8 text-green-600" />
+								</div>
+								<h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
+									Track & Improve
+								</h3>
+								<p className="text-stone-600">
+									Monitor student progress, identify pain
+									points, and get insights to improve teaching
+									effectiveness.
+								</p>
 							</div>
 						</div>
 					</div>
@@ -768,153 +1090,134 @@ export default function Home() {
 			</section>
 
 			{/* Benefits Section */}
-			<section className="book-page py-20 md:py-32">
+			<section
+				ref={benefitsRef}
+				id="benefits"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
+			>
 				<div className="container mx-auto px-4">
-					<div className="mx-auto max-w-4xl">
-						{/* Page number */}
-						<div className="mb-4 text-right text-stone-400/50 font-serif text-xs tracking-wider">
-							4
-						</div>
-
-						<div ref={benefitsRef} className="mb-16 text-center">
+					<div className="mx-auto max-w-6xl">
+						<div className="text-center mb-12">
 							<h2
-								className="mb-6 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl"
+								className="mb-4 font-serif text-3xl font-bold text-stone-900 sm:text-4xl md:text-5xl"
 								style={{ fontFamily: 'var(--font-playfair)' }}
 							>
 								Why Choose Studies to Stories?
 							</h2>
 						</div>
-						<div
-							ref={benefitsItemsRef}
-							className="grid gap-8 md:grid-cols-2"
-						>
-							<div className="flex gap-4">
-								<CheckCircle2 className="mt-1 size-7 shrink-0 text-stone-600" />
-								<div>
-									<h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
-										Preserve Your Learning
-									</h3>
-									<p
-										className="leading-relaxed text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Transform your educational journey into
-										a lasting narrative that you can revisit
-										and share.
-									</p>
-								</div>
-							</div>
-							<div className="flex gap-4">
-								<CheckCircle2 className="mt-1 size-7 shrink-0 text-stone-600" />
-								<div>
-									<h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
-										Enhance Understanding
-									</h3>
-									<p
-										className="leading-relaxed text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										The narrative format helps reinforce
-										concepts and makes complex topics more
-										accessible.
-									</p>
-								</div>
-							</div>
-							<div className="flex gap-4">
-								<CheckCircle2 className="mt-1 size-7 shrink-0 text-stone-600" />
-								<div>
-									<h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
-										Save Time
-									</h3>
-									<p
-										className="leading-relaxed text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										No need to manually write or structure
-										your content. Our AI handles the heavy
-										lifting.
-									</p>
-								</div>
-							</div>
-							<div className="flex gap-4">
-								<CheckCircle2 className="mt-1 size-7 shrink-0 text-stone-600" />
-								<div>
-									<h3 className="mb-2 font-serif text-xl font-semibold text-stone-900">
-										Creative Expression
-									</h3>
-									<p
-										className="leading-relaxed text-stone-600"
-										style={{
-											fontFamily: 'var(--font-crimson)',
-										}}
-									>
-										Express your learning journey in a
-										creative, engaging format that goes
-										beyond traditional notes.
-									</p>
-								</div>
-							</div>
+
+						<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+							<Card className="border-stone-200/50 bg-gradient-to-br from-blue-50/50 to-white">
+								<CardHeader>
+									<CheckCircle2 className="mb-2 size-6 text-blue-600" />
+									<CardTitle className="text-stone-900">
+										Multi-Format Learning
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Cater to different learning styles with
+										text, audio, video, and narrative
+										formats - all from one class recording.
+									</CardDescription>
+								</CardHeader>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-gradient-to-br from-purple-50/50 to-white">
+								<CardHeader>
+									<CheckCircle2 className="mb-2 size-6 text-purple-600" />
+									<CardTitle className="text-stone-900">
+										Automated Content Creation
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Save hours of preparation time. Our AI
+										handles content generation, leaving you
+										to focus on teaching.
+									</CardDescription>
+								</CardHeader>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-gradient-to-br from-pink-50/50 to-white">
+								<CardHeader>
+									<CheckCircle2 className="mb-2 size-6 text-pink-600" />
+									<CardTitle className="text-stone-900">
+										Data-Driven Insights
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Make informed decisions with
+										comprehensive analytics on student
+										performance and engagement.
+									</CardDescription>
+								</CardHeader>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-gradient-to-br from-green-50/50 to-white">
+								<CardHeader>
+									<CheckCircle2 className="mb-2 size-6 text-green-600" />
+									<CardTitle className="text-stone-900">
+										Engagement Boost
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Transform dry lessons into engaging
+										series that students actually want to
+										watch and learn from.
+									</CardDescription>
+								</CardHeader>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-gradient-to-br from-orange-50/50 to-white">
+								<CardHeader>
+									<CheckCircle2 className="mb-2 size-6 text-orange-600" />
+									<CardTitle className="text-stone-900">
+										Personalized Learning
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										AI-powered recommendations help students
+										focus on areas they need most, at their
+										own pace.
+									</CardDescription>
+								</CardHeader>
+							</Card>
+
+							<Card className="border-stone-200/50 bg-gradient-to-br from-indigo-50/50 to-white">
+								<CardHeader>
+									<CheckCircle2 className="mb-2 size-6 text-indigo-600" />
+									<CardTitle className="text-stone-900">
+										Collaborative Environment
+									</CardTitle>
+									<CardDescription className="text-stone-600">
+										Foster peer-to-peer learning with
+										built-in discussion forums, study
+										groups, and collaborative tools.
+									</CardDescription>
+								</CardHeader>
+							</Card>
 						</div>
 					</div>
 				</div>
 			</section>
 
-			{/* CTA Section - Final Page */}
+			{/* CTA Section */}
 			<section
-				id="get-started"
-				className="border-t border-stone-200/40 book-page py-20 md:py-32"
+				ref={ctaRef}
+				className="py-16 md:py-24 bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 text-white"
 			>
 				<div className="container mx-auto px-4">
-					<div className="mx-auto max-w-2xl">
-						{/* Page number */}
-						<div className="mb-4 text-right text-stone-400/50 font-serif text-xs tracking-wider">
-							5
-						</div>
-
-						<div
-							ref={finalCtaRef}
-							className="book-shadow rounded-xl bg-white/90 backdrop-blur-sm p-8 md:p-12 border border-stone-200/50 text-center"
+					<div className="mx-auto max-w-4xl text-center">
+						<h2
+							className="mb-6 font-serif text-3xl font-bold sm:text-4xl md:text-5xl"
+							style={{ fontFamily: 'var(--font-playfair)' }}
 						>
-							<h2
-								className="mb-6 font-serif text-4xl font-bold tracking-tight text-stone-900 sm:text-5xl"
-								style={{ fontFamily: 'var(--font-playfair)' }}
-							>
-								Ready to Transform Your Studies?
-							</h2>
-							<p
-								className="mb-10 text-lg leading-relaxed text-stone-600"
-								style={{ fontFamily: 'var(--font-crimson)' }}
-							>
-								Join thousands of students and educators turning
-								their learning into compelling narratives. Start
-								your free trial today.
-							</p>
-							<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-								<Button
-									size="lg"
-									className="w-full bg-stone-900 text-white hover:bg-stone-800 sm:w-auto shadow-sm"
-									asChild
-								>
-									<Link href="/story">
-										Create My First Story
-										<ArrowRight className="ml-2 size-4" />
-									</Link>
-								</Button>
-							</div>
-							<p
-								className="mt-8 text-sm text-stone-500"
-								style={{ fontFamily: 'var(--font-crimson)' }}
-							>
-								No credit card required • Free 14-day trial •
-								Cancel anytime
-							</p>
-						</div>
+							Ready to Transform Your Classroom?
+						</h2>
+						<p
+							className="mb-8 text-lg text-stone-300 sm:text-xl"
+							style={{ fontFamily: 'var(--font-crimson)' }}
+						>
+							Join schools already using Studies to Stories to
+							create engaging,
+							<br />
+							multi-format learning experiences that students
+							love.
+						</p>
 					</div>
 				</div>
 			</section>
