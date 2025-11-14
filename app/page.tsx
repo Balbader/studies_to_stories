@@ -405,20 +405,20 @@ export default function page() {
 									Create My First Story
 								</Link>
 							</Button>
-							{/* <Button
+							<Button
 								asChild
 								size="lg"
 								variant="outline"
 								className="border-stone-300 bg-white/80"
 							>
 								<Link
-									href="#how-it-works"
+									href="https://www.figma.com/make/heJWZCuOec57QnCBRCuPiC/Studies-To-Stories?node-id=0-1&p=f&fullscreen=1"
 									className="flex items-center gap-2"
 								>
 									<PlayCircle className="size-4" />
 									Watch Demo
 								</Link>
-							</Button> */}
+							</Button>
 						</div>
 					</div>
 				</div>
@@ -1430,20 +1430,20 @@ export default function page() {
 									Create My First Story
 								</Link>
 							</Button>
-							{/* <Button
+							<Button
 								asChild
 								size="lg"
 								variant="outline"
 								className="border-stone-300 bg-white/80"
 							>
 								<Link
-									href="#how-it-works"
+									href="https://www.figma.com/make/heJWZCuOec57QnCBRCuPiC/Studies-To-Stories?node-id=0-1&p=f&fullscreen=1"
 									className="flex items-center gap-2"
 								>
 									<PlayCircle className="size-4" />
 									Watch Demo
 								</Link>
-							</Button> */}
+							</Button>
 						</div>
 					</div>
 				</div>
