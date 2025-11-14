@@ -46,7 +46,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function ForSchools() {
+export default function ForEducators() {
 	const heroRef = useRef<HTMLDivElement>(null);
 	const featuresRef = useRef<HTMLDivElement>(null);
 	const studentToolsRef = useRef<HTMLDivElement>(null);
@@ -164,14 +164,17 @@ export default function ForSchools() {
 	}, []);
 
 	return (
-		<div className="min-h-screen bg-gradient-to-b from-stone-50 via-neutral-50 to-stone-50/80">
+		<div className="min-h-screen w-full book-page">
 			<Navbar />
 			{/* Hero Section */}
 			<section
 				ref={heroRef}
 				className="relative overflow-hidden border-b border-stone-200/40 pt-24 pb-16 md:pt-32 md:pb-24"
 			>
-				<div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-pink-50/50" />
+				{/* Book binding decoration */}
+				<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+				<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+				<div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-pink-50/30" />
 				<div className="container mx-auto px-4 relative z-10">
 					<div className="mx-auto max-w-4xl text-center">
 						<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 backdrop-blur-sm px-5 py-2 text-sm shadow-sm">
@@ -236,7 +239,7 @@ export default function ForSchools() {
 			<section
 				ref={featuresRef}
 				id="content-formats"
-				className="py-16 md:py-24 bg-white"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
 			>
 				<div className="container mx-auto px-4">
 					<div className="mx-auto max-w-6xl">
@@ -339,7 +342,7 @@ export default function ForSchools() {
 			<section
 				ref={studentToolsRef}
 				id="student-tools"
-				className="py-16 md:py-24 bg-gradient-to-b from-stone-50 to-white"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
 			>
 				<div className="container mx-auto px-4">
 					<div className="mx-auto max-w-6xl">
@@ -581,7 +584,7 @@ export default function ForSchools() {
 			<section
 				ref={teacherToolsRef}
 				id="teacher-tools"
-				className="py-16 md:py-24 bg-white"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
 			>
 				<div className="container mx-auto px-4">
 					<div className="mx-auto max-w-6xl">
@@ -1004,7 +1007,7 @@ export default function ForSchools() {
 			<section
 				ref={howItWorksRef}
 				id="how-it-works"
-				className="py-16 md:py-24 bg-gradient-to-b from-white to-stone-50"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
 			>
 				<div className="container mx-auto px-4">
 					<div className="mx-auto max-w-6xl">
@@ -1090,7 +1093,7 @@ export default function ForSchools() {
 			<section
 				ref={benefitsRef}
 				id="benefits"
-				className="py-16 md:py-24 bg-white"
+				className="py-16 md:py-24 book-page border-b border-stone-200/40"
 			>
 				<div className="container mx-auto px-4">
 					<div className="mx-auto max-w-6xl">
@@ -1210,38 +1213,11 @@ export default function ForSchools() {
 							style={{ fontFamily: 'var(--font-crimson)' }}
 						>
 							Join schools already using Studies to Stories to
-							create engaging, multi-format learning experiences
-							that students love.
+							create engaging,
+							<br />
+							multi-format learning experiences that students
+							love.
 						</p>
-						<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-							<Button
-								asChild
-								size="lg"
-								className="bg-white text-stone-900 hover:bg-stone-100 shadow-lg"
-							>
-								<Link
-									href="/story"
-									className="flex items-center gap-2"
-								>
-									<Rocket className="size-4" />
-									Start Free Trial
-								</Link>
-							</Button>
-							<Button
-								asChild
-								size="lg"
-								variant="outline"
-								className="border-stone-600 text-white hover:bg-stone-800"
-							>
-								<Link
-									href="#content-formats"
-									className="flex items-center gap-2"
-								>
-									<ArrowRight className="size-4" />
-									Learn More
-								</Link>
-							</Button>
-						</div>
 					</div>
 				</div>
 			</section>

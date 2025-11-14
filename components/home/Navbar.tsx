@@ -141,17 +141,8 @@ export default function Navbar() {
 						</Link>
 					</div>
 
-					{/* Navigation Links */}
-					<div
-						ref={linksRef}
-						className="hidden items-center gap-6 md:flex"
-					>
-						<Link
-							href="#features"
-							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
-						>
-							Features
-						</Link>
+					{/* CTA Button and Nav Link */}
+					<div ref={buttonRef} className="flex items-center gap-4">
 						<Link
 							href="#how-it-works"
 							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
@@ -159,27 +150,11 @@ export default function Navbar() {
 							How It Works
 						</Link>
 						<Link
-							href="/story"
-							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
-						>
-							Get Started
-						</Link>
-						<Link
-							href="#for-educators"
-							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
+							href="/for-educators"
+							className="hidden text-sm font-medium text-stone-700 transition-colors hover:text-stone-900 md:block"
 						>
 							For Educators
 						</Link>
-						<Link
-							href="/for-schools"
-							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
-						>
-							For Schools
-						</Link>
-					</div>
-
-					{/* CTA Button */}
-					<div ref={buttonRef}>
 						<Button
 							asChild
 							size="lg"
