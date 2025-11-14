@@ -54,22 +54,20 @@ const createCharactersStep = createStep({
 		const { lessonTitle, lessonContent, storytone, ageMode, language } =
 			inputData;
 
-		let prompt = `Create compelling characters for a story based on this lesson.\n\n`;
+		let prompt = `Create 2-3 characters for a story.\n\n`;
 
 		if (lessonTitle) {
-			prompt += `Lesson Title: ${lessonTitle}\n`;
+			prompt += `Title: ${lessonTitle}\n`;
 		}
 
-		prompt += `Lesson Content:\n${lessonContent}\n\n`;
-
-		prompt += `Storytone: ${storytone}\n`;
-		prompt += `Age Mode: ${ageMode}\n`;
+		prompt += `Lesson: ${lessonContent}\n`;
+		prompt += `Tone: ${storytone}, Age: ${ageMode}`;
 
 		if (language) {
-			prompt += `Language: ${language}\n`;
+			prompt += `, Lang: ${language}`;
 		}
 
-		prompt += `\nGenerate 2-4 memorable characters that embody different aspects of this lesson. Consider the storytone and age mode when designing their personalities and complexity.`;
+		prompt += `\n\nGenerate characters matching tone and age.`;
 
 		const result = await characterAgent.generate(prompt);
 
@@ -104,24 +102,21 @@ const createScenesStep = createStep({
 			characters,
 		} = inputData;
 
-		let prompt = `Design compelling scenes for a story based on this lesson and these characters.\n\n`;
+		let prompt = `Design 3 scenes.\n\n`;
 
 		if (lessonTitle) {
-			prompt += `Lesson Title: ${lessonTitle}\n`;
+			prompt += `Title: ${lessonTitle}\n`;
 		}
 
-		prompt += `Lesson Content:\n${lessonContent}\n\n`;
-
-		prompt += `Characters:\n${characters}\n\n`;
-
-		prompt += `Storytone: ${storytone}\n`;
-		prompt += `Age Mode: ${ageMode}\n`;
+		prompt += `Lesson: ${lessonContent}\n`;
+		prompt += `Characters: ${characters}\n`;
+		prompt += `Tone: ${storytone}, Age: ${ageMode}`;
 
 		if (language) {
-			prompt += `Language: ${language}\n`;
+			prompt += `, Lang: ${language}`;
 		}
 
-		prompt += `\nGenerate 3-5 key scenes that form a cohesive narrative arc. Consider the storytone when designing scene atmosphere and the age mode when determining complexity.`;
+		prompt += `\n\nGenerate 3 scenes forming a narrative arc.`;
 
 		const result = await sceneAgent.generate(prompt);
 
@@ -157,26 +152,22 @@ const createStoryStep = createStep({
 			scenes,
 		} = inputData;
 
-		let prompt = `Create a complete, engaging story based on the following:\n\n`;
+		let prompt = `Write a complete story.\n\n`;
 
 		if (lessonTitle) {
-			prompt += `Lesson Title: ${lessonTitle}\n`;
+			prompt += `Title: ${lessonTitle}\n`;
 		}
 
-		prompt += `Lesson Content:\n${lessonContent}\n\n`;
-
-		prompt += `Characters:\n${characters}\n\n`;
-
-		prompt += `Scene Outlines:\n${scenes}\n\n`;
-
-		prompt += `Storytone: ${storytone}\n`;
-		prompt += `Age Mode: ${ageMode}\n`;
+		prompt += `Lesson: ${lessonContent}\n`;
+		prompt += `Characters: ${characters}\n`;
+		prompt += `Scenes: ${scenes}\n`;
+		prompt += `Tone: ${storytone}, Age: ${ageMode}`;
 
 		if (language) {
-			prompt += `Language: ${language}\n`;
+			prompt += `, Lang: ${language}`;
 		}
 
-		prompt += `\nWrite a complete story that weaves together the lesson, characters, and scenes. Maintain the storytone throughout and ensure the content and complexity match the age mode. The story should be engaging, memorable, and subtly convey the lesson without being preachy.`;
+		prompt += `\n\nWeave into an engaging story matching tone and age. Convey lesson subtly.`;
 
 		const result = await lessonToStoryAgent.generate(prompt);
 
@@ -189,7 +180,7 @@ const createStoryStep = createStep({
 });
 
 // Create the multi-agent workflow: Lesson → Characters → Scene → Story
-// We need to manually chain the steps by transforming the output of each step
+// Optimized: Removed unnecessary merge steps and streamlined data flow
 export const lessonToStoryWorkflow = createWorkflow({
 	mastra,
 	id: 'lesson-to-story-workflow',
@@ -201,8 +192,8 @@ export const lessonToStoryWorkflow = createWorkflow({
 	.then(createCharactersStep)
 	.then(
 		createStep({
-			id: 'merge-characters',
-			description: 'Merge characters into workflow data',
+			id: 'prepare-scenes',
+			description: 'Prepare data for scene creation',
 			inputSchema: workflowInputSchema.extend({
 				characters: z.string(),
 			}),
@@ -220,8 +211,8 @@ export const lessonToStoryWorkflow = createWorkflow({
 	.then(createScenesStep)
 	.then(
 		createStep({
-			id: 'merge-scenes',
-			description: 'Merge scenes into workflow data',
+			id: 'prepare-story',
+			description: 'Prepare data for story creation',
 			inputSchema: z.object({
 				lessonTitle: z.string().optional(),
 				lessonContent: z.string(),

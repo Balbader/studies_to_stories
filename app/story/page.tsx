@@ -55,6 +55,7 @@ export default function Story() {
 	const [progress, setProgress] = useState(0);
 	const [elapsedTime, setElapsedTime] = useState(0);
 	const [processStatus, setProcessStatus] = useState<string>('');
+	const [showUploadSection, setShowUploadSection] = useState(true);
 
 	// Story creation state
 	const [storytone, setStorytone] = useState<
@@ -287,6 +288,7 @@ export default function Story() {
 		setProgress(0);
 		setProcessStatus('Initializing...');
 		setElapsedTime(0);
+		setShowUploadSection(false); // Collapse upload section when extraction starts
 		startTimeRef.current = Date.now();
 
 		try {
@@ -686,227 +688,232 @@ export default function Story() {
 									</CardDescription>
 								</CardHeader>
 								<CardContent>
-									<UploadComponent
-										onFileSelect={handleFileSelect}
-										files={files}
-									/>
+									{showUploadSection && (
+										<>
+											<UploadComponent
+												onFileSelect={handleFileSelect}
+												files={files}
+											/>
 
-									{files.length > 0 && (
-										<div className="mt-6 space-y-6">
-											{/* Story Creation Criteria */}
-											<div className="rounded-lg border border-stone-200/50 bg-stone-50/30 p-4">
-												<h3
-													className="mb-4 font-serif text-lg font-semibold text-stone-900"
-													style={{
-														fontFamily:
-															'var(--font-playfair)',
-													}}
-												>
-													Story Creation Settings
-												</h3>
-												<div className="grid gap-4 md:grid-cols-2">
-													{/* Storytone Selector */}
-													<div className="space-y-2">
-														<Label
-															htmlFor="storytone"
-															className="text-stone-700 font-medium"
+											{files.length > 0 && (
+												<div className="mt-6 space-y-6">
+													{/* Story Creation Criteria */}
+													<div className="rounded-lg border border-stone-200/50 bg-stone-50/30 p-4">
+														<h3
+															className="mb-4 font-serif text-lg font-semibold text-stone-900"
+															style={{
+																fontFamily:
+																	'var(--font-playfair)',
+															}}
 														>
-															Storytone
-														</Label>
-														<Select
-															value={storytone}
-															onValueChange={(
-																value,
-															) =>
-																setStorytone(
-																	value as typeof storytone,
-																)
-															}
-															disabled={
-																isExtracting ||
-																isEnhancing ||
-																isCreatingStory
-															}
-														>
-															<SelectTrigger
-																id="storytone"
-																className="w-full bg-white"
-															>
-																<SelectValue placeholder="Select a storytone" />
-															</SelectTrigger>
-															<SelectContent>
-																<SelectItem value="dark">
-																	Dark
-																</SelectItem>
-																<SelectItem value="humorous">
-																	Humorous
-																</SelectItem>
-																<SelectItem value="poetic">
-																	Poetic
-																</SelectItem>
-																<SelectItem value="epic">
-																	Epic
-																</SelectItem>
-																<SelectItem value="adventure">
-																	Adventure
-																</SelectItem>
-																<SelectItem value="mystery">
-																	Mystery
-																</SelectItem>
-																<SelectItem value="slice-of-life">
-																	Slice of
-																	Life
-																</SelectItem>
-															</SelectContent>
-														</Select>
-													</div>
+															Story Creation
+															Settings
+														</h3>
+														<div className="grid gap-4 md:grid-cols-2">
+															{/* Storytone Selector */}
+															<div className="space-y-2">
+																<Label
+																	htmlFor="storytone"
+																	className="text-stone-700 font-medium"
+																>
+																	Storytone
+																</Label>
+																<Select
+																	value={
+																		storytone
+																	}
+																	onValueChange={(
+																		value,
+																	) =>
+																		setStorytone(
+																			value as typeof storytone,
+																		)
+																	}
+																	disabled={
+																		isExtracting ||
+																		isEnhancing ||
+																		isCreatingStory
+																	}
+																>
+																	<SelectTrigger
+																		id="storytone"
+																		className="w-full bg-white"
+																	>
+																		<SelectValue placeholder="Select a storytone" />
+																	</SelectTrigger>
+																	<SelectContent>
+																		<SelectItem value="dark">
+																			Dark
+																		</SelectItem>
+																		<SelectItem value="humorous">
+																			Humorous
+																		</SelectItem>
+																		<SelectItem value="poetic">
+																			Poetic
+																		</SelectItem>
+																		<SelectItem value="epic">
+																			Epic
+																		</SelectItem>
+																		<SelectItem value="adventure">
+																			Adventure
+																		</SelectItem>
+																		<SelectItem value="mystery">
+																			Mystery
+																		</SelectItem>
+																		<SelectItem value="slice-of-life">
+																			Slice
+																			of
+																			Life
+																		</SelectItem>
+																	</SelectContent>
+																</Select>
+															</div>
 
-													{/* Age Mode Selector */}
-													<div className="space-y-2">
-														<Label
-															htmlFor="ageMode"
-															className="text-stone-700 font-medium"
-														>
-															Age Mode
-														</Label>
-														<Select
-															value={ageMode}
-															onValueChange={(
-																value,
-															) =>
-																setAgeMode(
-																	value as typeof ageMode,
-																)
-															}
-															disabled={
-																isExtracting ||
-																isEnhancing ||
-																isCreatingStory
-															}
-														>
-															<SelectTrigger
-																id="ageMode"
-																className="w-full bg-white"
-															>
-																<SelectValue placeholder="Select age mode" />
-															</SelectTrigger>
-															<SelectContent>
-																<SelectItem value="children">
-																	Children
-																</SelectItem>
-																<SelectItem value="ya">
-																	Young Adult
-																	(YA)
-																</SelectItem>
-																<SelectItem value="adult">
-																	Adult
-																</SelectItem>
-															</SelectContent>
-														</Select>
-													</div>
-												</div>
-											</div>
-
-											{isExtracting ||
-											isEnhancing ||
-											isCreatingStory ? (
-												<div className="space-y-3">
-													<div className="space-y-2">
-														<div className="flex items-center justify-between text-sm">
-															<span className="font-medium text-stone-700">
-																{processStatus ||
-																	(isExtracting
-																		? 'Extracting text...'
-																		: isEnhancing
-																			? 'Enhancing lesson...'
-																			: isCreatingStory
-																				? 'Creating story...'
-																				: 'Processing...')}
-															</span>
-															<span className="text-stone-500">
-																{Math.round(
-																	progress,
-																)}
-																%
-															</span>
+															{/* Age Mode Selector */}
+															<div className="space-y-2">
+																<Label
+																	htmlFor="ageMode"
+																	className="text-stone-700 font-medium"
+																>
+																	Age Mode
+																</Label>
+																<Select
+																	value={
+																		ageMode
+																	}
+																	onValueChange={(
+																		value,
+																	) =>
+																		setAgeMode(
+																			value as typeof ageMode,
+																		)
+																	}
+																	disabled={
+																		isExtracting ||
+																		isEnhancing ||
+																		isCreatingStory
+																	}
+																>
+																	<SelectTrigger
+																		id="ageMode"
+																		className="w-full bg-white"
+																	>
+																		<SelectValue placeholder="Select age mode" />
+																	</SelectTrigger>
+																	<SelectContent>
+																		<SelectItem value="children">
+																			Children
+																		</SelectItem>
+																		<SelectItem value="ya">
+																			Young
+																			Adult
+																			(YA)
+																		</SelectItem>
+																		<SelectItem value="adult">
+																			Adult
+																		</SelectItem>
+																	</SelectContent>
+																</Select>
+															</div>
 														</div>
-														<Progress
-															value={progress}
-															className="h-3 bg-stone-200"
-														/>
 													</div>
-													<div className="flex items-center justify-center gap-2 text-sm text-stone-500">
-														<Loader2 className="size-4 animate-spin" />
-														<span>
-															{Math.floor(
-																elapsedTime /
-																	60,
-															)}
-															:
-															{String(
-																elapsedTime %
-																	60,
-															).padStart(2, '0')}
-														</span>
-													</div>
+
+													<Button
+														onClick={
+															handleExtractText
+														}
+														disabled={false}
+														className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
+														size="lg"
+													>
+														<Sparkles className="mr-2 size-4" />
+														Create Story & Enhanced
+														Lesson from{' '}
+														{files.length} File
+														{files.length !== 1
+															? 's'
+															: ''}
+													</Button>
 												</div>
-											) : (
-												<Button
-													onClick={handleExtractText}
-													disabled={false}
-													className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
-													size="lg"
-												>
-													<Sparkles className="mr-2 size-4" />
-													Create Story & Enhanced
-													Lesson from {files.length}{' '}
-													File
-													{files.length !== 1
-														? 's'
-														: ''}
-												</Button>
 											)}
+										</>
+									)}
 
-											{error && (
-												<Alert variant="destructive">
-													<AlertTitle>
-														Error
-													</AlertTitle>
-													<AlertDescription>
-														{error}
-													</AlertDescription>
-												</Alert>
-											)}
-
-											{storyError && (
-												<Alert variant="destructive">
-													<AlertTitle>
-														Story Creation Error
-													</AlertTitle>
-													<AlertDescription>
-														{storyError}
-													</AlertDescription>
-												</Alert>
-											)}
-
-											{success &&
-												extractedData.length > 0 && (
-													<Alert className="border-green-200 bg-green-50/50">
-														<CheckCircle2 className="size-4 text-green-600" />
-														<AlertTitle className="text-green-900">
-															Success!
-														</AlertTitle>
-														<AlertDescription className="text-green-800">
-															{storyResult &&
-															enhancedText
-																? `Successfully created story and enhanced lesson from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. Both are available below.`
-																: enhancedText
-																	? `Successfully extracted and enhanced text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. ${storyError ? 'Story creation failed, but the enhanced lesson is available below.' : 'The enhanced lesson is available below.'}`
-																	: `Successfully extracted text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. ${enhanceError ? 'Enhancement failed, but you can try manually below.' : 'The extracted data is available below.'}`}
-														</AlertDescription>
-													</Alert>
-												)}
+									{/* Progress bar - shown when processing */}
+									{(isExtracting ||
+										isEnhancing ||
+										isCreatingStory) && (
+										<div className="space-y-3">
+											<div className="space-y-2">
+												<div className="flex items-center justify-between text-sm">
+													<span className="font-medium text-stone-700">
+														{processStatus ||
+															(isExtracting
+																? 'Extracting text...'
+																: isEnhancing
+																	? 'Enhancing lesson...'
+																	: isCreatingStory
+																		? 'Creating story...'
+																		: 'Processing...')}
+													</span>
+													<span className="text-stone-500">
+														{Math.round(progress)}%
+													</span>
+												</div>
+												<Progress
+													value={progress}
+													className="h-3 bg-stone-200"
+												/>
+											</div>
+											<div className="flex items-center justify-center gap-2 text-sm text-stone-500">
+												<Loader2 className="size-4 animate-spin" />
+												<span>
+													{Math.floor(
+														elapsedTime / 60,
+													)}
+													:
+													{String(
+														elapsedTime % 60,
+													).padStart(2, '0')}
+												</span>
+											</div>
 										</div>
+									)}
+
+									{error && (
+										<Alert variant="destructive">
+											<AlertTitle>Error</AlertTitle>
+											<AlertDescription>
+												{error}
+											</AlertDescription>
+										</Alert>
+									)}
+
+									{storyError && (
+										<Alert variant="destructive">
+											<AlertTitle>
+												Story Creation Error
+											</AlertTitle>
+											<AlertDescription>
+												{storyError}
+											</AlertDescription>
+										</Alert>
+									)}
+
+									{success && extractedData.length > 0 && (
+										<Alert className="border-green-200 bg-green-50/50">
+											<CheckCircle2 className="size-4 text-green-600" />
+											<AlertTitle className="text-green-900">
+												Success!
+											</AlertTitle>
+											<AlertDescription className="text-green-800">
+												{storyResult && enhancedText
+													? `Successfully created story and enhanced lesson from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. Both are available below.`
+													: enhancedText
+														? `Successfully extracted and enhanced text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. ${storyError ? 'Story creation failed, but the enhanced lesson is available below.' : 'The enhanced lesson is available below.'}`
+														: `Successfully extracted text from ${extractedData.length} file${extractedData.length !== 1 ? 's' : ''}. ${enhanceError ? 'Enhancement failed, but you can try manually below.' : 'The extracted data is available below.'}`}
+											</AlertDescription>
+										</Alert>
 									)}
 								</CardContent>
 							</Card>
@@ -1169,7 +1176,7 @@ export default function Story() {
 																'var(--font-crimson)',
 														}}
 													>
-														{storyResult.story
+														{storyResult?.story
 															.split('\n')
 															.map(
 																(
@@ -1340,7 +1347,9 @@ export default function Story() {
 													original={
 														combinedData.combinedText
 													}
-													enhanced={enhancedText}
+													enhanced={
+														enhancedText || ''
+													}
 													title="Before / After Enhancement"
 												/>
 											) : (
@@ -1376,7 +1385,9 @@ export default function Story() {
 																}}
 															>
 																{enhancedText
-																	.split('\n')
+																	?.split(
+																		'\n',
+																	)
 																	.map(
 																		(
 																			line,
@@ -1507,7 +1518,7 @@ export default function Story() {
 														'var(--font-crimson)',
 												}}
 											>
-												{storyResult.story
+												{storyResult?.story
 													.split('\n')
 													.map((line, index) => {
 														// Remove all markdown characters
@@ -1652,7 +1663,7 @@ export default function Story() {
 									enhancedText ? (
 										<TextDiffView
 											original={combinedData.combinedText}
-											enhanced={enhancedText}
+											enhanced={enhancedText || ''}
 											title="Before / After Enhancement"
 										/>
 									) : (
@@ -1687,91 +1698,90 @@ export default function Story() {
 																'var(--font-crimson)',
 														}}
 													>
-														{enhancedText &&
-															enhancedText
-																.split('\n')
-																.map(
-																	(
-																		line,
-																		index,
-																	) => {
-																		// Remove all markdown characters
-																		let cleanLine =
-																			line
-																				.replace(
-																					/^#+\s*/g,
-																					'',
-																				)
-																				.replace(
-																					/\*\*/g,
-																					'',
-																				)
-																				.replace(
-																					/\*([^*]+)\*/g,
-																					'$1',
-																				)
-																				.replace(
-																					/^[-*]\s+/g,
-																					'',
-																				)
-																				.replace(
-																					/^\d+\.\s+/g,
-																					'',
-																				)
-																				.replace(
-																					/```[\s\S]*?```/g,
-																					'',
-																				)
-																				.replace(
-																					/`([^`]+)`/g,
-																					'$1',
-																				)
-																				.replace(
-																					/\[([^\]]+)\]\([^\)]+\)/g,
-																					'$1',
-																				)
-																				.replace(
-																					/!\[([^\]]*)\]\([^\)]+\)/g,
-																					'',
-																				)
-																				.replace(
-																					/^[-*_]{3,}$/g,
-																					'',
-																				)
-																				.replace(
-																					/^>\s*/g,
-																					'',
-																				)
-																				.trim();
+														{enhancedText
+															?.split('\n')
+															.map(
+																(
+																	line,
+																	index,
+																) => {
+																	// Remove all markdown characters
+																	let cleanLine =
+																		line
+																			.replace(
+																				/^#+\s*/g,
+																				'',
+																			)
+																			.replace(
+																				/\*\*/g,
+																				'',
+																			)
+																			.replace(
+																				/\*([^*]+)\*/g,
+																				'$1',
+																			)
+																			.replace(
+																				/^[-*]\s+/g,
+																				'',
+																			)
+																			.replace(
+																				/^\d+\.\s+/g,
+																				'',
+																			)
+																			.replace(
+																				/```[\s\S]*?```/g,
+																				'',
+																			)
+																			.replace(
+																				/`([^`]+)`/g,
+																				'$1',
+																			)
+																			.replace(
+																				/\[([^\]]+)\]\([^\)]+\)/g,
+																				'$1',
+																			)
+																			.replace(
+																				/!\[([^\]]*)\]\([^\)]+\)/g,
+																				'',
+																			)
+																			.replace(
+																				/^[-*_]{3,}$/g,
+																				'',
+																			)
+																			.replace(
+																				/^>\s*/g,
+																				'',
+																			)
+																			.trim();
 
-																		// Skip empty lines
-																		if (
-																			!cleanLine
-																		) {
-																			return (
-																				<br
-																					key={
-																						index
-																					}
-																				/>
-																			);
-																		}
-
-																		// Display as paragraph
+																	// Skip empty lines
+																	if (
+																		!cleanLine
+																	) {
 																		return (
-																			<p
+																			<br
 																				key={
 																					index
 																				}
-																				className="mb-4 indent-0 first:indent-0"
-																			>
-																				{
-																					cleanLine
-																				}
-																			</p>
+																			/>
 																		);
-																	},
-																)}
+																	}
+
+																	// Display as paragraph
+																	return (
+																		<p
+																			key={
+																				index
+																			}
+																			className="mb-4 indent-0 first:indent-0"
+																		>
+																			{
+																				cleanLine
+																			}
+																		</p>
+																	);
+																},
+															)}
 													</div>
 												</div>
 											</div>
