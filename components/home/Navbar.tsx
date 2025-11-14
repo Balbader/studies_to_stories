@@ -217,13 +217,6 @@ export default function Navbar() {
 									>
 										For Teachers
 									</Link>
-									<Link
-										href="/story"
-										onClick={() => setMobileMenuOpen(false)}
-										className="text-base font-medium text-stone-700 transition-colors hover:text-stone-900 py-2 border-b border-stone-200"
-									>
-										Get Started
-									</Link>
 									<div className="pt-4">
 										<Button
 											asChild
