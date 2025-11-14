@@ -113,7 +113,7 @@ export default function Navbar() {
 							href="/"
 							className="flex items-center gap-2 group"
 						>
-							<div className="flex size-10 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50 group-hover:bg-stone-200/80 transition-colors overflow-hidden">
+							<div className="flex size-10 items-center justify-center rounded-lg overflow-hidden">
 								<Image
 									src="/book.gif"
 									alt="Studies to Stories Logo"
