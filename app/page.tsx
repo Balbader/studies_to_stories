@@ -1434,7 +1434,7 @@ export default function page() {
 								asChild
 								size="lg"
 								variant="outline"
-								className="border-stone-300 bg-white/80"
+								className="border-stone-300 bg-white/90 text-stone-900 hover:bg-white hover:text-stone-900"
 							>
 								<Link
 									href="https://www.figma.com/make/heJWZCuOec57QnCBRCuPiC/Studies-To-Stories?node-id=0-1&p=f&fullscreen=1"
