@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/home/Navbar';
+import Footer from '@/components/home/Footer';
 import {
 	BookOpen,
 	Sparkles,
@@ -1447,6 +1448,7 @@ export default function page() {
 					</div>
 				</div>
 			</section>
+			<Footer />
 		</div>
 	);
 }

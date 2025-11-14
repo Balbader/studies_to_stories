@@ -13,6 +13,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import Navbar from '@/components/home/Navbar';
+import Footer from '@/components/home/Footer';
 import {
 	Upload,
 	FileText,
@@ -1798,6 +1799,7 @@ export default function Story() {
 					</div>
 				</section>
 			)}
+			<Footer />
 		</div>
 	);
 }
