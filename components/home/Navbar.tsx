@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import gsap from 'gsap';
 
 export default function Navbar() {
@@ -121,8 +122,15 @@ export default function Navbar() {
 							href="/"
 							className="flex items-center gap-2 group"
 						>
-							<div className="flex size-10 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50 group-hover:bg-stone-200/80 transition-colors">
-								<BookOpen className="size-5 text-stone-700" />
+							<div className="flex size-10 items-center justify-center rounded-lg bg-stone-100/80 border border-stone-200/50 group-hover:bg-stone-200/80 transition-colors overflow-hidden">
+								<Image
+									src="/book.gif"
+									alt="Studies to Stories Logo"
+									width={40}
+									height={40}
+									className="object-contain"
+									unoptimized
+								/>
 							</div>
 							<span
 								className="font-serif text-xl font-bold text-stone-900 sm:text-2xl"
