@@ -41,9 +41,9 @@ export const metadata: Metadata = {
 	description:
 		'Turn your recorded classes and notes into captivating novels with AI-powered agents. Transform your educational journey into compelling narratives.',
 	icons: {
-		icon: '/book.gif',
-		shortcut: '/book.gif',
-		apple: '/book.gif',
+		icon: '/book.png',
+		shortcut: '/book.png',
+		apple: '/book.png',
 	},
 };
 
