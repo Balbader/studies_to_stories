@@ -40,6 +40,8 @@ import {
 	AlertCircle,
 	Star,
 	Rocket,
+	Book,
+	BookOpenIcon,
 } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -212,11 +214,11 @@ export default function page() {
 									href="/story"
 									className="flex items-center gap-2"
 								>
-									<Rocket className="size-4" />
-									Get Started Free
+									<BookOpenIcon className="size-4" />
+									Create My First Story
 								</Link>
 							</Button>
-							<Button
+							{/* <Button
 								asChild
 								size="lg"
 								variant="outline"
@@ -229,7 +231,7 @@ export default function page() {
 									<PlayCircle className="size-4" />
 									Watch Demo
 								</Link>
-							</Button>
+							</Button> */}
 						</div>
 					</div>
 				</div>
