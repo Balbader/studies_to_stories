@@ -1,13 +1,21 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from '@/components/ui/sheet';
+import { Sparkles, Menu } from 'lucide-react';
 import gsap from 'gsap';
 
 export default function Navbar() {
+	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const navRef = useRef<HTMLElement>(null);
 	const logoRef = useRef<HTMLDivElement>(null);
 	const linksRef = useRef<HTMLDivElement>(null);
@@ -141,8 +149,11 @@ export default function Navbar() {
 						</Link>
 					</div>
 
-					{/* CTA Button and Nav Link */}
-					<div ref={buttonRef} className="flex items-center gap-4">
+					{/* Desktop Navigation */}
+					<div
+						ref={buttonRef}
+						className="hidden md:flex items-center gap-4"
+					>
 						<Link
 							href="#how-it-works"
 							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
@@ -151,7 +162,7 @@ export default function Navbar() {
 						</Link>
 						<Link
 							href="/for-educators"
-							className="hidden text-sm font-medium text-stone-700 transition-colors hover:text-stone-900 md:block"
+							className="text-sm font-medium text-stone-700 transition-colors hover:text-stone-900"
 						>
 							For Educators
 						</Link>
@@ -168,6 +179,89 @@ export default function Navbar() {
 								<span>Create Story</span>
 							</Link>
 						</Button>
+					</div>
+
+					{/* Mobile Menu */}
+					<div className="flex items-center gap-2 md:hidden">
+						<Button
+							asChild
+							size="sm"
+							className="bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
+						>
+							<Link
+								href="/story"
+								className="flex items-center gap-2"
+							>
+								<Sparkles className="size-4" />
+								<span className="hidden sm:inline">Create</span>
+							</Link>
+						</Button>
+						<Sheet
+							open={mobileMenuOpen}
+							onOpenChange={setMobileMenuOpen}
+						>
+							<SheetTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="text-stone-700"
+								>
+									<Menu className="size-6" />
+									<span className="sr-only">Open menu</span>
+								</Button>
+							</SheetTrigger>
+							<SheetContent
+								side="right"
+								className="w-[300px] sm:w-[400px]"
+							>
+								<SheetHeader>
+									<SheetTitle className="text-left">
+										Navigation
+									</SheetTitle>
+								</SheetHeader>
+								<nav className="flex flex-col gap-4 mt-8">
+									<Link
+										href="#how-it-works"
+										onClick={() => setMobileMenuOpen(false)}
+										className="text-base font-medium text-stone-700 transition-colors hover:text-stone-900 py-2 border-b border-stone-200"
+									>
+										How It Works
+									</Link>
+									<Link
+										href="/for-educators"
+										onClick={() => setMobileMenuOpen(false)}
+										className="text-base font-medium text-stone-700 transition-colors hover:text-stone-900 py-2 border-b border-stone-200"
+									>
+										For Educators
+									</Link>
+									<Link
+										href="/story"
+										onClick={() => setMobileMenuOpen(false)}
+										className="text-base font-medium text-stone-700 transition-colors hover:text-stone-900 py-2 border-b border-stone-200"
+									>
+										Get Started
+									</Link>
+									<div className="pt-4">
+										<Button
+											asChild
+											size="lg"
+											className="w-full bg-stone-900 text-white hover:bg-stone-800 shadow-sm"
+											onClick={() =>
+												setMobileMenuOpen(false)
+											}
+										>
+											<Link
+												href="/story"
+												className="flex items-center justify-center gap-2"
+											>
+												<Sparkles className="size-4" />
+												<span>Create Story</span>
+											</Link>
+										</Button>
+									</div>
+								</nav>
+							</SheetContent>
+						</Sheet>
 					</div>
 				</div>
 			</div>
