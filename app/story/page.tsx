@@ -38,6 +38,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import type { ExtractedTextData, CombinedTextData } from '@/lib/text-extractor';
 import TextDiffView from '@/components/story/TextDiffView';
 import AudioPlayer from '@/components/story/AudioPlayer';
+import { CHARACTER_VOICES } from '@/lib/character-voices';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -70,6 +71,9 @@ export default function Story() {
 		| 'slice-of-life'
 	>('humorous');
 	const [ageMode, setAgeMode] = useState<'children' | 'ya' | 'adult'>('ya');
+	const [characterVoice, setCharacterVoice] = useState<string>(
+		CHARACTER_VOICES[0]?.id || 'bradford',
+	);
 	const [storyResult, setStoryResult] = useState<{
 		story: string;
 		characters: string;
@@ -481,6 +485,7 @@ export default function Story() {
 						);
 						storyFormData.append('storytone', storytone);
 						storyFormData.append('ageMode', ageMode);
+						storyFormData.append('characterVoice', characterVoice);
 						if (result.combined.totalDocuments) {
 							storyFormData.append(
 								'lessonTitle',
@@ -597,6 +602,7 @@ export default function Story() {
 			formData.append('lessonContent', combinedData.combinedText);
 			formData.append('storytone', storytone);
 			formData.append('ageMode', ageMode);
+			formData.append('characterVoice', characterVoice);
 			if (combinedData.totalDocuments) {
 				formData.append(
 					'lessonTitle',
@@ -819,6 +825,69 @@ export default function Story() {
 																	</SelectContent>
 																</Select>
 															</div>
+														</div>
+
+														{/* Character Voice Selector */}
+														<div className="mt-4 space-y-2">
+															<Label
+																htmlFor="characterVoice"
+																className="text-stone-700 font-medium"
+															>
+																Character Voice
+															</Label>
+															<Select
+																value={
+																	characterVoice
+																}
+																onValueChange={(
+																	value,
+																) =>
+																	setCharacterVoice(
+																		value,
+																	)
+																}
+																disabled={
+																	isExtracting ||
+																	isEnhancing ||
+																	isCreatingStory
+																}
+															>
+																<SelectTrigger
+																	id="characterVoice"
+																	className="w-full bg-white"
+																>
+																	<SelectValue placeholder="Select character voice" />
+																</SelectTrigger>
+																<SelectContent>
+																	{CHARACTER_VOICES.map(
+																		(
+																			voice,
+																		) => (
+																			<SelectItem
+																				key={
+																					voice.id
+																				}
+																				value={
+																					voice.id
+																				}
+																			>
+																				<div className="flex flex-col">
+																					<span className="font-medium">
+																						{
+																							voice.name
+																						}
+																					</span>
+																					<span className="text-xs text-muted-foreground">
+																						{
+																							voice.description
+																						}
+																					</span>
+																				</div>
+																			</SelectItem>
+																		),
+																	)}
+																</SelectContent>
+															</Select>
 														</div>
 													</div>
 
@@ -1158,6 +1227,9 @@ export default function Story() {
 													}
 													audioUrl={
 														storyResult.audioUrl
+													}
+													characterVoice={
+														characterVoice
 													}
 												/>
 											)}

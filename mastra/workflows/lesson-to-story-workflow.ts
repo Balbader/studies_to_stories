@@ -26,6 +26,7 @@ const workflowInputSchema = z.object({
 	lessonContent: z.string(),
 	storytone: z.enum(storytoneOptions).default('humorous'),
 	ageMode: z.enum(ageModeOptions).default('ya'),
+	characterVoice: z.string().default('bradford'),
 	language: z.string().optional(),
 });
 
@@ -89,11 +90,13 @@ const createScenesStep = createStep({
 		lessonContent: z.string(),
 		storytone: z.enum(storytoneOptions),
 		ageMode: z.enum(ageModeOptions),
+		characterVoice: z.string(),
 		language: z.string().optional(),
 		characters: z.string(),
 	}),
 	outputSchema: sceneOutputSchema.extend({
 		characters: z.string(), // Pass through characters
+		characterVoice: z.string(), // Pass through character voice
 	}),
 	execute: async ({ inputData }) => {
 		const {
@@ -101,6 +104,7 @@ const createScenesStep = createStep({
 			lessonContent,
 			storytone,
 			ageMode,
+			characterVoice,
 			language,
 			characters,
 		} = inputData;
@@ -126,6 +130,7 @@ const createScenesStep = createStep({
 		return {
 			scenes: result.text,
 			characters, // Pass through characters
+			characterVoice, // Pass through character voice
 		};
 	},
 });
@@ -139,17 +144,21 @@ const createStoryStep = createStep({
 		lessonContent: z.string(),
 		storytone: z.enum(storytoneOptions),
 		ageMode: z.enum(ageModeOptions),
+		characterVoice: z.string(),
 		language: z.string().optional(),
 		characters: z.string(),
 		scenes: z.string(),
 	}),
-	outputSchema: workflowOutputSchema,
+	outputSchema: workflowOutputSchema.extend({
+		characterVoice: z.string(),
+	}),
 	execute: async ({ inputData }) => {
 		const {
 			lessonTitle,
 			lessonContent,
 			storytone,
 			ageMode,
+			characterVoice,
 			language,
 			characters,
 			scenes,
@@ -178,6 +187,7 @@ const createStoryStep = createStep({
 			story: result.text,
 			characters,
 			scenes,
+			characterVoice,
 		};
 	},
 });
@@ -190,17 +200,29 @@ const generateAudioStep = createStep({
 		story: z.string(),
 		characters: z.string(),
 		scenes: z.string(),
+		characterVoice: z.string(),
 	}),
 	outputSchema: workflowOutputSchema,
 	execute: async ({ inputData }) => {
-		const { story, characters, scenes } = inputData;
+		const { story, characters, scenes, characterVoice } = inputData;
+
+		// Get character voice details
+		const { getCharacterVoiceById } = await import(
+			'@/lib/character-voices'
+		);
+		const voice = getCharacterVoiceById(characterVoice);
 
 		const prompt = `Convert the following story into audio-ready format for narration:
 
 Story:
 ${story}
 
-Format the story text to be clear and engaging when read aloud. Maintain the story's tone and pacing. Ensure proper punctuation and pauses for natural narration. Return a JSON object with the following structure:
+Character Voice: ${voice?.name || characterVoice}
+${voice?.description ? `Voice Description: ${voice.description}` : ''}
+
+Format the story text to be clear and engaging when read aloud. The narration should match the character voice style: ${voice?.description || 'engaging and natural'}. Maintain the story's tone and pacing. Ensure proper punctuation and pauses for natural narration that reflects the character's voice characteristics.
+
+Return a JSON object with the following structure:
 {
 	"audioText": "The formatted story text ready for audio generation",
 	"audioUrl": ""
@@ -259,6 +281,7 @@ export const lessonToStoryWorkflow = createWorkflow({
 				lessonContent: z.string(),
 				storytone: z.enum(storytoneOptions),
 				ageMode: z.enum(ageModeOptions),
+				characterVoice: z.string(),
 				language: z.string().optional(),
 				characters: z.string(),
 			}),
@@ -275,6 +298,7 @@ export const lessonToStoryWorkflow = createWorkflow({
 				lessonContent: z.string(),
 				storytone: z.enum(storytoneOptions),
 				ageMode: z.enum(ageModeOptions),
+				characterVoice: z.string(),
 				language: z.string().optional(),
 				characters: z.string(),
 				scenes: z.string(),
@@ -284,6 +308,7 @@ export const lessonToStoryWorkflow = createWorkflow({
 				lessonContent: z.string(),
 				storytone: z.enum(storytoneOptions),
 				ageMode: z.enum(ageModeOptions),
+				characterVoice: z.string(),
 				language: z.string().optional(),
 				characters: z.string(),
 				scenes: z.string(),
@@ -296,16 +321,20 @@ export const lessonToStoryWorkflow = createWorkflow({
 		createStep({
 			id: 'prepare-audio',
 			description: 'Prepare data for audio generation',
-			inputSchema: workflowOutputSchema,
+			inputSchema: workflowOutputSchema.extend({
+				characterVoice: z.string(),
+			}),
 			outputSchema: z.object({
 				story: z.string(),
 				characters: z.string(),
 				scenes: z.string(),
+				characterVoice: z.string(),
 			}),
 			execute: async ({ inputData }) => ({
 				story: inputData.story,
 				characters: inputData.characters,
 				scenes: inputData.scenes,
+				characterVoice: inputData.characterVoice,
 			}),
 		}),
 	)

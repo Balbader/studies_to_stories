@@ -9,9 +9,14 @@ import { Progress } from '@/components/ui/progress';
 interface AudioPlayerProps {
 	audioText?: string;
 	audioUrl?: string;
+	characterVoice?: string;
 }
 
-export default function AudioPlayer({ audioText, audioUrl }: AudioPlayerProps) {
+export default function AudioPlayer({
+	audioText,
+	audioUrl,
+	characterVoice,
+}: AudioPlayerProps) {
 	const [isPlaying, setIsPlaying] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [currentAudioUrl, setCurrentAudioUrl] = useState<string | null>(
@@ -48,7 +53,10 @@ export default function AudioPlayer({ audioText, audioUrl }: AudioPlayerProps) {
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ text: audioText }),
+				body: JSON.stringify({
+					text: audioText,
+					characterVoice: characterVoice,
+				}),
 			});
 
 			const data = await response.json();

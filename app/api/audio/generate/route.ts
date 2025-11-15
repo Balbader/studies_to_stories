@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
+import { getVoiceIdForCharacter } from '@/lib/character-voices';
 
 // Increase timeout for long audio generation
 export const maxDuration = 300; // 5 minutes
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
 			apiKey: apiKey,
 		});
 
-		const { text } = await request.json();
+		const { text, characterVoice } = await request.json();
 
 		if (!text || typeof text !== 'string') {
 			return NextResponse.json(
@@ -46,9 +47,18 @@ export async function POST(request: NextRequest) {
 			`Generating audio for text length: ${textToConvert.length} characters`,
 		);
 
+		// Get voice ID for character voice
+		const voiceId = characterVoice
+			? getVoiceIdForCharacter(characterVoice)
+			: DEFAULT_VOICE_ID;
+
+		console.log(
+			`Using voice ID: ${voiceId} for character: ${characterVoice || 'default'}`,
+		);
+
 		// Generate audio using Eleven Labs
 		console.log('Calling Eleven Labs API...');
-		const audio = await elevenlabs.textToSpeech.convert(DEFAULT_VOICE_ID, {
+		const audio = await elevenlabs.textToSpeech.convert(voiceId, {
 			text: textToConvert,
 			modelId: 'eleven_multilingual_v2',
 			outputFormat: 'mp3_44100_128',

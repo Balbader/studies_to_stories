@@ -82,6 +82,8 @@ export async function createStory(formData: FormData) {
 	const lessonContent = formData.get('lessonContent')?.toString();
 	const storytone = formData.get('storytone')?.toString() || 'humorous';
 	const ageMode = formData.get('ageMode')?.toString() || 'ya';
+	const characterVoice =
+		formData.get('characterVoice')?.toString() || 'bradford';
 	const language = formData.get('language')?.toString();
 
 	if (!lessonContent) {
@@ -110,6 +112,13 @@ export async function createStory(formData: FormData) {
 		throw new Error(`Invalid age mode: ${ageMode}`);
 	}
 
+	// Validate character voice
+	const { CHARACTER_VOICES } = await import('@/lib/character-voices');
+	const validCharacterVoices = CHARACTER_VOICES.map((v) => v.id);
+	if (!validCharacterVoices.includes(characterVoice)) {
+		throw new Error(`Invalid character voice: ${characterVoice}`);
+	}
+
 	try {
 		const run = await lessonToStoryWorkflow.createRunAsync();
 		const result = await run.start({
@@ -118,6 +127,7 @@ export async function createStory(formData: FormData) {
 				lessonContent,
 				storytone: storytone as (typeof validStorytones)[number],
 				ageMode: ageMode as (typeof validAgeModes)[number],
+				characterVoice,
 				language,
 			},
 		});
