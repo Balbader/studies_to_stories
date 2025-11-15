@@ -1,0 +1,153 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { mainConceptsExtractorAgent } from '../../../mastra/agents/main-concepts-extractor-agent';
+import { mainConceptScriptGeneratorAgent } from '../../../mastra/agents/main-concept-script-generator-agent';
+
+/**
+ * Test endpoint to generate concept scripts and send them to n8n
+ *
+ * POST /api/test-scripts
+ * Body: { lessonContent: string }
+ *
+ * This endpoint:
+ * 1. Extracts concepts from lesson content
+ * 2. Generates scripts for each concept
+ * 3. Sends each script to n8n webhook
+ */
+export async function POST(request: NextRequest) {
+	try {
+		const body = await request.json();
+		const { lessonContent } = body;
+
+		if (!lessonContent) {
+			return NextResponse.json(
+				{ error: 'lessonContent is required' },
+				{ status: 400 },
+			);
+		}
+
+		// Step 1: Extract concepts
+		console.log('Step 1: Extracting concepts from lesson content...');
+		const conceptsResponse =
+			await mainConceptsExtractorAgent.generate(lessonContent);
+
+		let conceptsData;
+		try {
+			// Try to parse JSON from the response
+			const cleanedResponse = conceptsResponse.text
+				.replace(/```json\n?/g, '')
+				.replace(/```\n?/g, '')
+				.trim();
+			conceptsData = JSON.parse(cleanedResponse);
+		} catch (error) {
+			console.error('Error parsing concepts JSON:', error);
+			console.error('Raw response:', conceptsResponse.text);
+			return NextResponse.json(
+				{
+					error: 'Failed to parse concepts from agent response',
+					rawResponse: conceptsResponse.text,
+				},
+				{ status: 500 },
+			);
+		}
+
+		if (!conceptsData.concepts || !Array.isArray(conceptsData.concepts)) {
+			return NextResponse.json(
+				{
+					error: 'Invalid concepts format',
+					received: conceptsData,
+				},
+				{ status: 500 },
+			);
+		}
+
+		console.log(
+			`Step 1 complete: Extracted ${conceptsData.concepts.length} concepts`,
+		);
+
+		// Step 2: Generate scripts for each concept
+		console.log('Step 2: Generating scripts for concepts...');
+		const scriptsResponse = await mainConceptScriptGeneratorAgent.generate(
+			JSON.stringify(conceptsData),
+		);
+
+		let scriptsData;
+		try {
+			// Try to parse JSON from the response
+			const cleanedResponse = scriptsResponse.text
+				.replace(/```json\n?/g, '')
+				.replace(/```\n?/g, '')
+				.trim();
+			scriptsData = JSON.parse(cleanedResponse);
+		} catch (error) {
+			console.error('Error parsing scripts JSON:', error);
+			console.error('Raw response:', scriptsResponse.text);
+			return NextResponse.json(
+				{
+					error: 'Failed to parse scripts from agent response',
+					rawResponse: scriptsResponse.text,
+				},
+				{ status: 500 },
+			);
+		}
+
+		if (!scriptsData.scripts || !Array.isArray(scriptsData.scripts)) {
+			return NextResponse.json(
+				{
+					error: 'Invalid scripts format',
+					received: scriptsData,
+				},
+				{ status: 500 },
+			);
+		}
+
+		console.log(
+			`Step 2 complete: Generated ${scriptsData.scripts.length} scripts`,
+		);
+
+		// Step 3: Send scripts to n8n
+		console.log('Step 3: Sending scripts to n8n...');
+		const n8nResponse = await fetch(`${request.nextUrl.origin}/api/n8n`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(scriptsData),
+		});
+
+		if (!n8nResponse.ok) {
+			const errorText = await n8nResponse.text();
+			console.error('n8n route error:', errorText);
+			return NextResponse.json(
+				{
+					error: 'Failed to send scripts to n8n',
+					status: n8nResponse.status,
+					details: errorText,
+				},
+				{ status: n8nResponse.status },
+			);
+		}
+
+		const n8nResult = await n8nResponse.json();
+
+		return NextResponse.json({
+			success: true,
+			summary: {
+				conceptsExtracted: conceptsData.concepts.length,
+				scriptsGenerated: scriptsData.scripts.length,
+				n8nResults: n8nResult,
+			},
+			concepts: conceptsData.concepts,
+			scripts: scriptsData.scripts,
+		});
+	} catch (error) {
+		console.error('Error in test-scripts endpoint:', error);
+		return NextResponse.json(
+			{
+				error: 'Failed to process test',
+				message:
+					error instanceof Error ? error.message : 'Unknown error',
+			},
+			{ status: 500 },
+		);
+	}
+}
