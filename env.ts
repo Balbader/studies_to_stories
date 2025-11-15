@@ -2,12 +2,16 @@ import { z } from 'zod';
 
 const envSchema = z.object({
 	ANTHROPIC_API_KEY: z.string(),
+	ELEVENLABS_API_KEY: z.string(),
+	X_N8N_API_KEY: z.string(),
 	TURSO_DATABASE_URL: z.string(),
 	TURSO_AUTH_TOKEN: z.string(),
 });
 
 const publicEnv: Record<string, string> = {
 	ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY!,
+	ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY!,
+	X_N8N_API_KEY: process.env.X_N8N_API_KEY!,
 	TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL!,
 	TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN!,
 };
