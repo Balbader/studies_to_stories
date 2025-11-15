@@ -35,10 +35,11 @@ echo ""
 echo "Sending sample scripts to: $API_URL"
 echo ""
 
-# Make the POST request
-curl -X POST "$API_URL" \
-  -H "Content-Type: application/json" \
-  -d "$SAMPLE_SCRIPTS" \
+# Make the GET request with scripts as query parameter
+# URL encode the JSON data
+ENCODED_SCRIPTS=$(echo "$SAMPLE_SCRIPTS" | jq -c . | jq -sRr @uri)
+
+curl -X GET "$API_URL?scripts=$ENCODED_SCRIPTS" \
   | jq '.'
 
 echo ""
