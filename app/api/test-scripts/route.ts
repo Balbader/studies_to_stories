@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mainConceptsExtractorAgent } from '../../../mastra/agents/main-concepts-extractor-agent';
 import { mainConceptScriptGeneratorAgent } from '../../../mastra/agents/main-concept-script-generator-agent';
+import { sendScriptsToN8N } from '../../../lib/n8n-sender';
 
 /**
  * Test endpoint to generate concept scripts and send them to n8n
@@ -112,35 +113,17 @@ export async function POST(request: NextRequest) {
 
 		// Step 3: Send scripts to n8n (using the exact scripts from Mastra agent)
 		console.log('Step 3: Sending Mastra-generated scripts to n8n...');
-		const scriptsParam = encodeURIComponent(JSON.stringify(scriptsData));
-		const n8nResponse = await fetch(
-			`${request.nextUrl.origin}/api/n8n?scripts=${scriptsParam}`,
-			{
-				method: 'GET',
-			},
-		);
-
-		if (!n8nResponse.ok) {
-			const errorText = await n8nResponse.text();
-			console.error('n8n route error:', errorText);
-			return NextResponse.json(
-				{
-					error: 'Failed to send scripts to n8n',
-					status: n8nResponse.status,
-					details: errorText,
-				},
-				{ status: n8nResponse.status },
-			);
-		}
-
-		const n8nResult = await n8nResponse.json();
+		const n8nResults = await sendScriptsToN8N(scriptsData.scripts);
 
 		return NextResponse.json({
 			success: true,
 			summary: {
 				conceptsExtracted: conceptsData.concepts.length,
 				scriptsGenerated: scriptsData.scripts.length,
-				n8nResults: n8nResult,
+				n8nResults: {
+					totalScripts: scriptsData.scripts.length,
+					results: n8nResults,
+				},
 			},
 			concepts: conceptsData.concepts,
 			scripts: scriptsData.scripts,
