@@ -145,6 +145,8 @@ export async function createStory(formData: FormData) {
 			story: result.result.story,
 			characters: result.result.characters,
 			scenes: result.result.scenes,
+			audioText: result.result.audioText,
+			audioUrl: result.result.audioUrl,
 		};
 	} catch (error) {
 		// Re-throw with more context if it's an API key related error

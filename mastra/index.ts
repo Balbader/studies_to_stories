@@ -1,9 +1,9 @@
 import { Mastra } from '@mastra/core/mastra';
-import { PinoLogger } from '@mastra/loggers';
 import { lessonEnhancerAgent } from './agents/lesson-enhancer-agent';
 import { characterAgent } from './agents/character-agent';
 import { sceneAgent } from './agents/scene-agent';
 import { lessonToStoryAgent } from './agents/lesson-to-story-agent';
+import { elevenLabAgent } from './agents/eleven-lab-agent';
 
 // Ensure API key is available - AI SDK will read from process.env.ANTHROPIC_API_KEY
 if (!process.env.ANTHROPIC_API_KEY) {
@@ -27,11 +27,8 @@ function getMastraInstance(): Mastra {
 				characterAgent,
 				sceneAgent,
 				lessonToStoryAgent,
+				elevenLabAgent,
 			},
-			logger: new PinoLogger({
-				name: 'Mastra',
-				level: 'info',
-			}),
 			// Only enable observability in production to avoid hot reload conflicts
 			...(isDevelopment
 				? {}

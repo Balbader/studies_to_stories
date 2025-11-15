@@ -4,6 +4,7 @@ import { mastra } from '../index';
 import { characterAgent } from '../agents/character-agent';
 import { sceneAgent } from '../agents/scene-agent';
 import { lessonToStoryAgent } from '../agents/lesson-to-story-agent';
+import { elevenLabAgent } from '../agents/eleven-lab-agent';
 
 // Define storytone type
 export const storytoneOptions = [
@@ -42,6 +43,8 @@ const workflowOutputSchema = z.object({
 	story: z.string(),
 	characters: z.string(),
 	scenes: z.string(),
+	audioText: z.string().optional(),
+	audioUrl: z.string().optional(),
 });
 
 // Step 1: Create Characters
@@ -179,13 +182,67 @@ const createStoryStep = createStep({
 	},
 });
 
-// Create the multi-agent workflow: Lesson → Characters → Scene → Story
+// Step 4: Generate Audio from Story
+const generateAudioStep = createStep({
+	id: 'generate-audio',
+	description: 'Generate audio narration from the story',
+	inputSchema: z.object({
+		story: z.string(),
+		characters: z.string(),
+		scenes: z.string(),
+	}),
+	outputSchema: workflowOutputSchema,
+	execute: async ({ inputData }) => {
+		const { story, characters, scenes } = inputData;
+
+		const prompt = `Convert the following story into audio-ready format for narration:
+
+Story:
+${story}
+
+Format the story text to be clear and engaging when read aloud. Maintain the story's tone and pacing. Ensure proper punctuation and pauses for natural narration. Return a JSON object with the following structure:
+{
+	"audioText": "The formatted story text ready for audio generation",
+	"audioUrl": ""
+}`;
+
+		const result = await elevenLabAgent.generate(prompt);
+
+		// Parse the JSON response from the agent
+		let audioData;
+		try {
+			const cleanedResponse = result.text
+				.replace(/```json\n?/g, '')
+				.replace(/```\n?/g, '')
+				.trim();
+			audioData = JSON.parse(cleanedResponse);
+		} catch (error) {
+			console.error('Error parsing audio JSON:', error);
+			console.error('Raw response:', result.text);
+			// Fallback: use the story text as audio text
+			audioData = {
+				audioText: story,
+				audioUrl: '',
+			};
+		}
+
+		return {
+			story,
+			characters,
+			scenes,
+			audioText: audioData.audioText || story,
+			audioUrl: audioData.audioUrl || '',
+		};
+	},
+});
+
+// Create the multi-agent workflow: Lesson → Characters → Scene → Story → Audio
 // Optimized: Removed unnecessary merge steps and streamlined data flow
 export const lessonToStoryWorkflow = createWorkflow({
 	mastra,
 	id: 'lesson-to-story-workflow',
 	description:
-		'Multi-agent workflow to transform lessons into stories: Lesson → Characters → Scene → Story',
+		'Multi-agent workflow to transform lessons into stories with audio: Lesson → Characters → Scene → Story → Audio',
 	inputSchema: workflowInputSchema,
 	outputSchema: workflowOutputSchema,
 })
@@ -235,4 +292,22 @@ export const lessonToStoryWorkflow = createWorkflow({
 		}),
 	)
 	.then(createStoryStep)
+	.then(
+		createStep({
+			id: 'prepare-audio',
+			description: 'Prepare data for audio generation',
+			inputSchema: workflowOutputSchema,
+			outputSchema: z.object({
+				story: z.string(),
+				characters: z.string(),
+				scenes: z.string(),
+			}),
+			execute: async ({ inputData }) => ({
+				story: inputData.story,
+				characters: inputData.characters,
+				scenes: inputData.scenes,
+			}),
+		}),
+	)
+	.then(generateAudioStep)
 	.commit();
