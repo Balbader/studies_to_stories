@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Get webhook URL from environment variable or use default
 const N8N_WEBHOOK_URL =
+	process.env.N8N_WEBHOOK_URL ||
 	'https://n8n.srv1088518.hstgr.cloud/webhook-test/c098efaf-0689-4d48-ad8b-5774c30e151c';
 
 interface ConceptScript {
@@ -55,25 +57,38 @@ Provide:
 4. A description (humorous, keyword-rich, up to 2000 characters).
 </user>`;
 
+				const payload = {
+					conceptName: scriptData.conceptName,
+					script: scriptData.script,
+					wordCount: scriptData.wordCount,
+					estimatedDuration: scriptData.estimatedDuration,
+					visualCues: scriptData.visualCues,
+					// Include the formatted prompt for n8n's AI Agent
+					text: n8nPrompt,
+				};
+
+				console.log(
+					`Sending script "${scriptData.conceptName}" to n8n webhook: ${N8N_WEBHOOK_URL}`,
+				);
+
 				const response = await fetch(N8N_WEBHOOK_URL, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
-					body: JSON.stringify({
-						conceptName: scriptData.conceptName,
-						script: scriptData.script,
-						wordCount: scriptData.wordCount,
-						estimatedDuration: scriptData.estimatedDuration,
-						visualCues: scriptData.visualCues,
-						// Include the formatted prompt for n8n's AI Agent
-						text: n8nPrompt,
-					}),
+					body: JSON.stringify(payload),
 				});
 
 				if (!response.ok) {
+					const errorText = await response.text().catch(() => '');
+					console.error(
+						`n8n webhook error for "${scriptData.conceptName}":`,
+						response.status,
+						response.statusText,
+						errorText,
+					);
 					throw new Error(
-						`n8n webhook returned ${response.status}: ${response.statusText}`,
+						`n8n webhook returned ${response.status}: ${response.statusText}${errorText ? ` - ${errorText}` : ''}`,
 					);
 				}
 

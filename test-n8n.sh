@@ -6,24 +6,28 @@
 API_URL="http://localhost:3000/api/n8n"
 
 # Sample script data matching the format from mainConceptScriptGeneratorAgent
-SAMPLE_SCRIPTS='{
+# Using heredoc to avoid quote escaping issues
+SAMPLE_SCRIPTS=$(cat <<'EOF'
+{
   "scripts": [
     {
       "conceptName": "Photosynthesis Basics",
-      "script": "Plants are nature\'s solar panels! They capture sunlight and turn it into energy through photosynthesis. Watch how it works!",
+      "script": "Plants are nature's solar panels! They capture sunlight and turn it into energy through photosynthesis. Watch how it works!",
       "wordCount": 22,
       "estimatedDuration": "8 seconds",
       "visualCues": ["Green leaves capturing sunlight", "Chloroplasts glowing", "Oxygen bubbles rising"]
     },
     {
       "conceptName": "Carbon Dioxide Absorption",
-      "script": "Plants breathe in carbon dioxide from the air. It\'s their food source! See how they transform CO2 into life.",
+      "script": "Plants breathe in carbon dioxide from the air. It's their food source! See how they transform CO2 into life.",
       "wordCount": 20,
       "estimatedDuration": "8 seconds",
       "visualCues": ["CO2 molecules entering leaves", "Stomata opening and closing", "Chemical transformation"]
     }
   ]
-}'
+}
+EOF
+)
 
 echo "Testing n8n route directly..."
 echo "=================================================="
