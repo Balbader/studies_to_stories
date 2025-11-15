@@ -366,7 +366,7 @@ export default function page() {
 						<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-stone-200/60 bg-white/80 backdrop-blur-sm px-5 py-2 text-sm shadow-sm">
 							<GraduationCap className="size-4 text-blue-600" />
 							<span className="text-stone-700 font-medium">
-								Transform Education with AI
+								Reinventing Education with AI
 							</span>
 						</div>
 						<h1
