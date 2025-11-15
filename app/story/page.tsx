@@ -1147,128 +1147,145 @@ export default function Story() {
 									</TabsList>
 
 									<TabsContent value="story" className="mt-0">
-										<div
-											ref={enhancedRef}
-											className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden"
-										>
-											{/* Book binding decoration */}
-											<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
-											<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+										<div className="space-y-6">
+											{/* Audio Player */}
+											{(storyResult.audioText ||
+												storyResult.story) && (
+												<AudioPlayer
+													audioText={
+														storyResult.audioText ||
+														storyResult.story
+													}
+													audioUrl={
+														storyResult.audioUrl
+													}
+												/>
+											)}
 
-											{/* Page number */}
-											<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
-												1
-											</div>
+											{/* Story Content */}
+											<div
+												ref={enhancedRef}
+												className="book-shadow relative bg-white/95 border border-stone-200/50 rounded-lg overflow-hidden"
+											>
+												{/* Book binding decoration */}
+												<div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
+												<div className="absolute right-0 top-0 bottom-0 w-1 bg-gradient-to-b from-stone-400/30 via-stone-300/20 to-stone-400/30" />
 
-											{/* Book page content */}
-											<div className="px-8 md:px-12 py-10 md:py-16">
-												{/* Left margin line (like a notebook) */}
-												<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+												{/* Page number */}
+												<div className="absolute top-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+													1
+												</div>
 
-												{/* Main content area with book-like typography */}
-												<div
-													className="prose prose-stone max-w-none book-content"
-													style={{
-														fontFamily:
-															'var(--font-crimson)',
-													}}
-												>
+												{/* Book page content */}
+												<div className="px-8 md:px-12 py-10 md:py-16">
+													{/* Left margin line (like a notebook) */}
+													<div className="absolute left-16 top-0 bottom-0 w-0.5 bg-stone-200/40" />
+
+													{/* Main content area with book-like typography */}
 													<div
-														className="text-stone-800 leading-relaxed text-base md:text-lg"
+														className="prose prose-stone max-w-none book-content"
 														style={{
 															fontFamily:
 																'var(--font-crimson)',
 														}}
 													>
-														{storyResult?.story
-															.split('\n')
-															.map(
-																(
-																	line,
-																	index,
-																) => {
-																	// Remove all markdown characters
-																	let cleanLine =
-																		line
-																			.replace(
-																				/^#+\s*/g,
-																				'',
-																			)
-																			.replace(
-																				/\*\*/g,
-																				'',
-																			)
-																			.replace(
-																				/\*([^*]+)\*/g,
-																				'$1',
-																			)
-																			.replace(
-																				/^[-*]\s+/g,
-																				'',
-																			)
-																			.replace(
-																				/^\d+\.\s+/g,
-																				'',
-																			)
-																			.replace(
-																				/```[\s\S]*?```/g,
-																				'',
-																			)
-																			.replace(
-																				/`([^`]+)`/g,
-																				'$1',
-																			)
-																			.replace(
-																				/\[([^\]]+)\]\([^\)]+\)/g,
-																				'$1',
-																			)
-																			.replace(
-																				/!\[([^\]]*)\]\([^\)]+\)/g,
-																				'',
-																			)
-																			.replace(
-																				/^[-*_]{3,}$/g,
-																				'',
-																			)
-																			.replace(
-																				/^>\s*/g,
-																				'',
-																			)
-																			.trim();
+														<div
+															className="text-stone-800 leading-relaxed text-base md:text-lg"
+															style={{
+																fontFamily:
+																	'var(--font-crimson)',
+															}}
+														>
+															{storyResult?.story
+																.split('\n')
+																.map(
+																	(
+																		line,
+																		index,
+																	) => {
+																		// Remove all markdown characters
+																		let cleanLine =
+																			line
+																				.replace(
+																					/^#+\s*/g,
+																					'',
+																				)
+																				.replace(
+																					/\*\*/g,
+																					'',
+																				)
+																				.replace(
+																					/\*([^*]+)\*/g,
+																					'$1',
+																				)
+																				.replace(
+																					/^[-*]\s+/g,
+																					'',
+																				)
+																				.replace(
+																					/^\d+\.\s+/g,
+																					'',
+																				)
+																				.replace(
+																					/```[\s\S]*?```/g,
+																					'',
+																				)
+																				.replace(
+																					/`([^`]+)`/g,
+																					'$1',
+																				)
+																				.replace(
+																					/\[([^\]]+)\]\([^\)]+\)/g,
+																					'$1',
+																				)
+																				.replace(
+																					/!\[([^\]]*)\]\([^\)]+\)/g,
+																					'',
+																				)
+																				.replace(
+																					/^[-*_]{3,}$/g,
+																					'',
+																				)
+																				.replace(
+																					/^>\s*/g,
+																					'',
+																				)
+																				.trim();
 
-																	if (
-																		!cleanLine
-																	) {
+																		if (
+																			!cleanLine
+																		) {
+																			return (
+																				<br
+																					key={
+																						index
+																					}
+																				/>
+																			);
+																		}
+
 																		return (
-																			<br
+																			<p
 																				key={
 																					index
 																				}
-																			/>
+																				className="mb-4 indent-0 first:indent-0"
+																			>
+																				{
+																					cleanLine
+																				}
+																			</p>
 																		);
-																	}
-
-																	return (
-																		<p
-																			key={
-																				index
-																			}
-																			className="mb-4 indent-0 first:indent-0"
-																		>
-																			{
-																				cleanLine
-																			}
-																		</p>
-																	);
-																},
-															)}
+																	},
+																)}
+														</div>
 													</div>
 												</div>
-											</div>
 
-											{/* Bottom page number */}
-											<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
-												1
+												{/* Bottom page number */}
+												<div className="absolute bottom-4 right-6 text-stone-400/50 font-serif text-xs tracking-wider">
+													1
+												</div>
 											</div>
 										</div>
 									</TabsContent>
@@ -1491,9 +1508,13 @@ export default function Story() {
 								// Only story available
 								<div className="space-y-6">
 									{/* Audio Player */}
-									{storyResult.audioText && (
+									{(storyResult.audioText ||
+										storyResult.story) && (
 										<AudioPlayer
-											audioText={storyResult.audioText}
+											audioText={
+												storyResult.audioText ||
+												storyResult.story
+											}
 											audioUrl={storyResult.audioUrl}
 										/>
 									)}

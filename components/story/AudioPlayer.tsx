@@ -19,6 +19,7 @@ export default function AudioPlayer({ audioText, audioUrl }: AudioPlayerProps) {
 	);
 	const [progress, setProgress] = useState(0);
 	const [duration, setDuration] = useState(0);
+	const [error, setError] = useState<string | null>(null);
 	const audioRef = useRef<HTMLAudioElement | null>(null);
 
 	// Generate audio if we have audioText but no audioUrl
@@ -40,6 +41,7 @@ export default function AudioPlayer({ audioText, audioUrl }: AudioPlayerProps) {
 		if (!audioText) return;
 
 		setIsLoading(true);
+		setError(null);
 		try {
 			const response = await fetch('/api/audio/generate', {
 				method: 'POST',
@@ -49,16 +51,25 @@ export default function AudioPlayer({ audioText, audioUrl }: AudioPlayerProps) {
 				body: JSON.stringify({ text: audioText }),
 			});
 
-			if (!response.ok) {
-				throw new Error('Failed to generate audio');
-			}
-
 			const data = await response.json();
+
+			if (!response.ok) {
+				throw new Error(
+					data.message || data.error || 'Failed to generate audio',
+				);
+			}
 			if (data.audioUrl) {
 				setCurrentAudioUrl(data.audioUrl);
+			} else {
+				throw new Error('No audio URL returned from server');
 			}
 		} catch (error) {
 			console.error('Error generating audio:', error);
+			setError(
+				error instanceof Error
+					? error.message
+					: 'Failed to generate audio. Please try again.',
+			);
 		} finally {
 			setIsLoading(false);
 		}
@@ -159,6 +170,11 @@ export default function AudioPlayer({ audioText, audioUrl }: AudioPlayerProps) {
 								</span>
 							)}
 						</div>
+						{error && (
+							<div className="text-xs text-red-600 mb-2">
+								{error}
+							</div>
+						)}
 						{currentAudioUrl && (
 							<>
 								<Progress
