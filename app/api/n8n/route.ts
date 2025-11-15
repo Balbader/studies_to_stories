@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // Get webhook URL from environment variable or use default
 const N8N_WEBHOOK_URL =
 	process.env.N8N_WEBHOOK_URL ||
-	'https://n8n.srv1088518.hstgr.cloud/webhook-test/c098efaf-0689-4d48-ad8b-5774c30e151c';
+'https://n8n.srv1088518.hstgr.cloud/webhook/c098efaf-0689-4d48-ad8b-5774c30e151c';
 
 interface ConceptScript {
 	conceptName: string;
