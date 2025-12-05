@@ -4,7 +4,6 @@ import { mastra } from '../index';
 import { characterAgent } from '../agents/character-agent';
 import { sceneAgent } from '../agents/scene-agent';
 import { lessonToStoryAgent } from '../agents/lesson-to-story-agent';
-import { elevenLabAgent } from '../agents/eleven-lab-agent';
 
 // Define storytone type
 export const storytoneOptions = [
@@ -26,7 +25,6 @@ const workflowInputSchema = z.object({
 	lessonContent: z.string(),
 	storytone: z.enum(storytoneOptions).default('humorous'),
 	ageMode: z.enum(ageModeOptions).default('ya'),
-	characterVoice: z.string().default('bradford'),
 	language: z.string().optional(),
 });
 
@@ -44,8 +42,6 @@ const workflowOutputSchema = z.object({
 	story: z.string(),
 	characters: z.string(),
 	scenes: z.string(),
-	audioText: z.string().optional(),
-	audioUrl: z.string().optional(),
 });
 
 // Step 1: Create Characters
@@ -90,13 +86,11 @@ const createScenesStep = createStep({
 		lessonContent: z.string(),
 		storytone: z.enum(storytoneOptions),
 		ageMode: z.enum(ageModeOptions),
-		characterVoice: z.string(),
 		language: z.string().optional(),
 		characters: z.string(),
 	}),
 	outputSchema: sceneOutputSchema.extend({
 		characters: z.string(), // Pass through characters
-		characterVoice: z.string(), // Pass through character voice
 	}),
 	execute: async ({ inputData }) => {
 		const {
@@ -104,7 +98,6 @@ const createScenesStep = createStep({
 			lessonContent,
 			storytone,
 			ageMode,
-			characterVoice,
 			language,
 			characters,
 		} = inputData;
@@ -130,7 +123,6 @@ const createScenesStep = createStep({
 		return {
 			scenes: result.text,
 			characters, // Pass through characters
-			characterVoice, // Pass through character voice
 		};
 	},
 });
@@ -144,21 +136,17 @@ const createStoryStep = createStep({
 		lessonContent: z.string(),
 		storytone: z.enum(storytoneOptions),
 		ageMode: z.enum(ageModeOptions),
-		characterVoice: z.string(),
 		language: z.string().optional(),
 		characters: z.string(),
 		scenes: z.string(),
 	}),
-	outputSchema: workflowOutputSchema.extend({
-		characterVoice: z.string(),
-	}),
+	outputSchema: workflowOutputSchema,
 	execute: async ({ inputData }) => {
 		const {
 			lessonTitle,
 			lessonContent,
 			storytone,
 			ageMode,
-			characterVoice,
 			language,
 			characters,
 			scenes,
@@ -187,84 +175,17 @@ const createStoryStep = createStep({
 			story: result.text,
 			characters,
 			scenes,
-			characterVoice,
 		};
 	},
 });
 
-// Step 4: Generate Audio from Story
-const generateAudioStep = createStep({
-	id: 'generate-audio',
-	description: 'Generate audio narration from the story',
-	inputSchema: z.object({
-		story: z.string(),
-		characters: z.string(),
-		scenes: z.string(),
-		characterVoice: z.string(),
-	}),
-	outputSchema: workflowOutputSchema,
-	execute: async ({ inputData }) => {
-		const { story, characters, scenes, characterVoice } = inputData;
-
-		// Get character voice details
-		const { getCharacterVoiceById } = await import(
-			'@/lib/character-voices'
-		);
-		const voice = getCharacterVoiceById(characterVoice);
-
-		const prompt = `Convert the following story into audio-ready format for narration:
-
-Story:
-${story}
-
-Character Voice: ${voice?.name || characterVoice}
-${voice?.description ? `Voice Description: ${voice.description}` : ''}
-
-Format the story text to be clear and engaging when read aloud. The narration should match the character voice style: ${voice?.description || 'engaging and natural'}. Maintain the story's tone and pacing. Ensure proper punctuation and pauses for natural narration that reflects the character's voice characteristics.
-
-Return a JSON object with the following structure:
-{
-	"audioText": "The formatted story text ready for audio generation",
-	"audioUrl": ""
-}`;
-
-		const result = await elevenLabAgent.generate(prompt);
-
-		// Parse the JSON response from the agent
-		let audioData;
-		try {
-			const cleanedResponse = result.text
-				.replace(/```json\n?/g, '')
-				.replace(/```\n?/g, '')
-				.trim();
-			audioData = JSON.parse(cleanedResponse);
-		} catch (error) {
-			console.error('Error parsing audio JSON:', error);
-			console.error('Raw response:', result.text);
-			// Fallback: use the story text as audio text
-			audioData = {
-				audioText: story,
-				audioUrl: '',
-			};
-		}
-
-		return {
-			story,
-			characters,
-			scenes,
-			audioText: audioData.audioText || story,
-			audioUrl: audioData.audioUrl || '',
-		};
-	},
-});
-
-// Create the multi-agent workflow: Lesson → Characters → Scene → Story → Audio
+// Create the multi-agent workflow: Lesson → Characters → Scene → Story
 // Optimized: Removed unnecessary merge steps and streamlined data flow
 export const lessonToStoryWorkflow = createWorkflow({
 	mastra,
 	id: 'lesson-to-story-workflow',
 	description:
-		'Multi-agent workflow to transform lessons into stories with audio: Lesson → Characters → Scene → Story → Audio',
+		'Multi-agent workflow to transform lessons into stories: Lesson → Characters → Scene → Story',
 	inputSchema: workflowInputSchema,
 	outputSchema: workflowOutputSchema,
 })
@@ -281,7 +202,6 @@ export const lessonToStoryWorkflow = createWorkflow({
 				lessonContent: z.string(),
 				storytone: z.enum(storytoneOptions),
 				ageMode: z.enum(ageModeOptions),
-				characterVoice: z.string(),
 				language: z.string().optional(),
 				characters: z.string(),
 			}),
@@ -298,7 +218,6 @@ export const lessonToStoryWorkflow = createWorkflow({
 				lessonContent: z.string(),
 				storytone: z.enum(storytoneOptions),
 				ageMode: z.enum(ageModeOptions),
-				characterVoice: z.string(),
 				language: z.string().optional(),
 				characters: z.string(),
 				scenes: z.string(),
@@ -308,7 +227,6 @@ export const lessonToStoryWorkflow = createWorkflow({
 				lessonContent: z.string(),
 				storytone: z.enum(storytoneOptions),
 				ageMode: z.enum(ageModeOptions),
-				characterVoice: z.string(),
 				language: z.string().optional(),
 				characters: z.string(),
 				scenes: z.string(),
@@ -317,26 +235,4 @@ export const lessonToStoryWorkflow = createWorkflow({
 		}),
 	)
 	.then(createStoryStep)
-	.then(
-		createStep({
-			id: 'prepare-audio',
-			description: 'Prepare data for audio generation',
-			inputSchema: workflowOutputSchema.extend({
-				characterVoice: z.string(),
-			}),
-			outputSchema: z.object({
-				story: z.string(),
-				characters: z.string(),
-				scenes: z.string(),
-				characterVoice: z.string(),
-			}),
-			execute: async ({ inputData }) => ({
-				story: inputData.story,
-				characters: inputData.characters,
-				scenes: inputData.scenes,
-				characterVoice: inputData.characterVoice,
-			}),
-		}),
-	)
-	.then(generateAudioStep)
 	.commit();
